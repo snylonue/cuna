@@ -4,6 +4,8 @@ macro_rules! get {
     };
 }
 
+pub mod time;
+
 use failure::Error;
 use nom::IResult;
 use nom::error::ErrorKind;
@@ -32,7 +34,8 @@ pub struct Comment(pub Vec<String>);
 
 impl FromStr for Header {
     type Err = Error;
-    
+
+    /// Note that the function will ignore repeated commands and only return the last one
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_header(s)
     }
