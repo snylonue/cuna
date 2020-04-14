@@ -1,22 +1,14 @@
-macro_rules! map_res {
-    ($r: expr, $err_msg: expr) => {
-        match $r {
-            Ok(o) => Ok(o),
-            Err(_) => Err(failure::err_msg($err_msg)),
-        }
-    };
-}
-
 use failure::Error;
 use nom::bytes::complete::take_until;
 use nom::bytes::complete::take_while_m_n;
 use nom::bytes::complete::tag;
 use nom::character::is_digit;
-use nom::combinator::map_res;
+use nom::sequence::preceded;
 use nom::error::ErrorKind;
 use nom::Err as NomErr;
 use std::str::FromStr;
 
+#[derive(Debug)]
 pub struct Duration {
     seconds: u32,
     frames: u8,
@@ -58,8 +50,8 @@ impl FromStr for Duration {
         let is_digit_char = |c| is_digit(c as u8);
         let err_msg = |_: NomErr<(_, ErrorKind)>| failure::err_msg("Invaild time");
         let (rest, minutes) = take_until(":")(s).map_err(err_msg)?;
-        let (rest, (_, seconds)) =  map_res(tag(":"), take_while_m_n::<_, _, (_, ErrorKind)>(2, 2, is_digit_char))(rest).map_err(err_msg)?;
-        let (_, (_, frames)) = map_res(tag(":"), take_while_m_n::<_, _, (_, ErrorKind)>(2, 2, is_digit_char))(rest).map_err(err_msg)?;
+        let (rest, seconds) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
+        let (_, frames) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
         Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
     }
 }
