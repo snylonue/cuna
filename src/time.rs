@@ -7,6 +7,9 @@ use nom::sequence::preceded;
 use nom::error::ErrorKind;
 use nom::Err as NomErr;
 use std::str::FromStr;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 
 #[derive(Debug)]
 pub struct Duration {
@@ -15,17 +18,17 @@ pub struct Duration {
 }
 
 impl Duration {
-    pub fn new(minutes: u32, seconds: u32, frames: u8) -> Self {
+    pub fn new(minutes: u32, seconds: u32, frames: u32) -> Self {
         Self::from_msf_opt(minutes, seconds, frames).expect("Invaild time")
     }
-    pub fn from_msf_opt(minutes: u32, seconds: u32, frames: u8) -> Option<Self> {
+    pub fn from_msf_opt(minutes: u32, seconds: u32, frames: u32) -> Option<Self> {
         if seconds >= 60 || frames >= 75 {
             None
         } else {
-            Some(Self { seconds: minutes * 60 + seconds, frames })
+            Some(Self { seconds: minutes * 60 + seconds, frames: frames as u8 })
         }
     }
-    pub fn from_msf_force(mut minutes: u32, mut seconds: u32, mut frames: u8) -> Self {
+    pub fn from_msf_force(mut minutes: u32, mut seconds: u32, mut frames: u32) -> Self {
         seconds += (frames / 75) as u32;
         frames %= 75;
         minutes += seconds / 60;
@@ -36,7 +39,7 @@ impl Duration {
         self.seconds / 60 as u32
     }
     pub fn seconds(&self) -> u32 {
-        self.seconds
+        self.seconds % 60
     }
     pub fn frames(&self) -> u32 {
         self.frames as u32
@@ -53,5 +56,11 @@ impl FromStr for Duration {
         let (rest, seconds) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
         let (_, frames) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
         Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
+    }
+}
+
+impl Display for Duration {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{}:{}:{}", self.minutes(), self.seconds(), self.frames)
     }
 }
