@@ -1,8 +1,8 @@
 use failure::Error;
-use nom::bytes::complete::take_until;
 use nom::bytes::complete::take_while_m_n;
 use nom::bytes::complete::tag;
 use nom::character::is_digit;
+use nom::character::complete::digit1;
 use nom::sequence::preceded;
 use nom::error::ErrorKind;
 use nom::Err as NomErr;
@@ -18,6 +18,9 @@ pub struct Duration {
 }
 
 impl Duration {
+    /// # Panics
+    ///
+    /// Panics if seconds >= 60 or frames >= 75
     pub fn new(minutes: u32, seconds: u32, frames: u32) -> Self {
         Self::from_msf_opt(minutes, seconds, frames).expect("Invaild time")
     }
@@ -52,7 +55,7 @@ impl FromStr for Duration {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let is_digit_char = |c| is_digit(c as u8);
         let err_msg = |_: NomErr<(_, ErrorKind)>| failure::err_msg("Invaild time");
-        let (rest, minutes) = take_until(":")(s).map_err(err_msg)?;
+        let (rest, minutes) = digit1(s).map_err(err_msg)?;
         let (rest, seconds) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
         let (_, frames) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
         Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
@@ -61,6 +64,6 @@ impl FromStr for Duration {
 
 impl Display for Duration {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{}:{}:{}", self.minutes(), self.seconds(), self.frames)
+        write!(f, "{:0>2}:{:0>2}:{:0>2}", self.minutes(), self.seconds(), self.frames)
     }
 }
