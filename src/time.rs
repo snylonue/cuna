@@ -4,6 +4,7 @@ use nom::bytes::complete::tag;
 use nom::character::is_digit;
 use nom::character::complete::digit1;
 use nom::sequence::preceded;
+use nom::sequence::tuple;
 use nom::error::ErrorKind;
 use nom::Err as NomErr;
 use std::str::FromStr;
@@ -53,11 +54,9 @@ impl FromStr for Duration {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let is_digit_char = |c| is_digit(c as u8);
+        let take_digit2 = |s| take_while_m_n(2, 2, |c| is_digit(c as u8))(s);
         let err_msg = |_: NomErr<(_, ErrorKind)>| failure::err_msg("Invaild time");
-        let (rest, minutes) = digit1(s).map_err(err_msg)?;
-        let (rest, seconds) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
-        let (_, frames) = preceded(tag(":"), take_while_m_n(2, 2, is_digit_char))(rest).map_err(err_msg)?;
+        let (_, (minutes, seconds, frames)) = tuple((digit1, preceded(tag(":"), take_digit2), preceded(tag(":"), take_digit2)))(s).map_err(err_msg)?;
         Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
     }
 }
