@@ -1,6 +1,9 @@
 macro_rules! get {
+    ($map: expr, ($($key: ident),*)) => {
+        [$($map.remove(stringify!($key)),)*]
+    };
     ($map: expr, ($($key: ident),*) >> $map_res: expr) => {
-        [$($map.get(stringify!($key)).map($map_res),)*]
+        [$($map.remove(stringify!($key)).map($map_res),)*]
     };
 }
 
@@ -27,6 +30,11 @@ pub struct Header {
     pub title: Option<String>,
     pub performer: Option<String>,
     pub songwriter: Option<String>,
+#[derive(Debug, Default)]
+pub struct Header {
+    pub title: Option<Vec<String>>,
+    pub performer: Option<Vec<String>>,
+    pub songwriter: Option<Vec<String>>,
     pub catalog: Option<u64>,
     pub cdtextfile: Option<String>,
 }
@@ -89,31 +97,29 @@ fn split_cue(s: &str) -> IResult<&str, String> {
     Ok((file, headers))
 }
 fn parse_header(s: &str) -> HanaResult<Header> {
-    let mut headers: BTreeMap<&str, &str> = BTreeMap::new();
+    let mut headers: BTreeMap<&str, _> = BTreeMap::new();
     for line in s.lines() {
         for command in ["title", "performer", "songwriter", "catalog", "cdtextfile"].iter() {
             if let Ok((content, _)) = tag::<_, _, (_, ErrorKind)>(command.to_owned())(line) {
                 match parse_quote(content.trim()) {
-                    Ok((_, content)) => headers.insert(command, content),
-                    Err(NomErr::Error((content, _))) => headers.insert(command, content),
+                    Ok((_, content)) | Err(NomErr::Error((content, _))) => headers.entry(command).or_insert_with(|| Vec::with_capacity(1)).push(content.to_owned()),
                     _ => return Err(failure::err_msg("Unexcept error while parsing header")),
                 };
             }
         }
     }
     let [title, performer, songwriter, catalog, cdtextfile] = get!(headers,
-        (title, performer, songwriter, catalog, cdtextfile) >>
-        |s| s.to_string());
+        (title, performer, songwriter, catalog, cdtextfile));
     let header = Header {
         title,
         performer,
         songwriter,
         catalog: match catalog {
-            Some(s) if s.len() == 13 => Some(s.parse()?),
+            Some(s) if s[0].len() == 13 => Some(s[0].parse()?),
             Some(_) => return Err(failure::err_msg("Invaild catalog")),
             None => None,
         },
-        cdtextfile
+        cdtextfile: cdtextfile.map(|mut v| v.pop()).flatten(),
     };
     Ok(header)
 }
