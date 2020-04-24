@@ -8,7 +8,7 @@ macro_rules! get {
 }
 macro_rules! tags {
     ($($heads: expr),*) => {
-        ($(nom::bytes::complete::tag_no_case($heads),)*)
+        nom::branch::alt::<_, _, (_, ErrorKind), _>(($(nom::bytes::complete::tag_no_case($heads),)*))
     };
 }
 
@@ -22,7 +22,7 @@ use nom::bytes::complete::take_until;
 use nom::sequence::delimited;
 use nom::character::complete::space0;
 use nom::Err as NomErr;
-use std::fs::File;
+use std::fs;
 use std::collections::BTreeMap;
 use std::io::Read;
 use std::iter::FromIterator;
@@ -50,7 +50,6 @@ pub struct Comment(pub Vec<String>);
 impl FromStr for Header {
     type Err = Error;
 
-    /// Note that the function will ignore repeated commands and only return the last one
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parse_header(s)
     }
@@ -74,12 +73,10 @@ impl<S: Into<String>> FromIterator<S> for Comment {
 fn parse_line<'a>(line: &'a str, head: &str) -> IResult<&'a str, &'a str> {
     tag(head)(line)
 }
-fn parse_quote(content: &str) -> IResult<&str, &str>  {
-    delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(content)
 fn quote() -> impl Fn(&str) -> IResult<&str, &str, (&str, ErrorKind)> {
     |i: &str| delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(i)
 }
-fn quotec(content: &str) -> IResult<&str, &str>  {
+pub fn quotec(content: &str) -> IResult<&str, &str>  {
     quote()(content)
 }
 fn parse_comments(s: &str) -> (Comment, String) {
@@ -136,12 +133,14 @@ fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
 fn parse_header(s: &str) -> HanaResult<Header> {
     let mut headers = BTreeMap::new();
     for line in s.lines() {
-        match alt::<_, _, (_, ErrorKind), _>(tags!("title", "performer", "songwriter", "catalog", "cdtextfile"))(line) {
+        match tags!("title", "performer", "songwriter", "catalog", "cdtextfile")(line) {
             Ok((content, command)) => match quotec(content.trim()) {
-                Ok((_, content)) | Err(NomErr::Error((content, _))) => headers.entry(command.trim().to_ascii_lowercase()).or_insert_with(|| Vec::with_capacity(1)).push(content.to_owned()),
+                Ok((_, content)) | Err(NomErr::Error((content, _))) => headers.entry(command.to_ascii_lowercase())
+                    .or_insert_with(|| Vec::with_capacity(1))
+                    .push(content.to_owned()),
                 _ => return Err(failure::err_msg("Unexcept error while parsing header")),
-            }
-            _ => {}
+            },
+            _ => {},
         }
     }
     let [title, performer, songwriter, catalog, cdtextfile] = get!(headers,
@@ -151,7 +150,7 @@ fn parse_header(s: &str) -> HanaResult<Header> {
         performer,
         songwriter,
         catalog: match catalog {
-            Some(s) if s[0].len() == 13 => Some(s[0].parse()?),
+            Some(s) if s.len() == 1 && s[0].len() == 13 => Some(s[0].parse()?),
             Some(_) => return Err(failure::err_msg("Invaild catalog")),
             None => None,
         },
