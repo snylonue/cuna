@@ -17,6 +17,21 @@ pub fn quotec(content: &str) -> IResult<&str, &str>  {
 pub(crate) fn indentation_num(s: &str) -> usize {
     space0::<_, (_, ErrorKind)>(s).map(|(_, o)| o.len()).unwrap()
 }
+fn find_indentation<'a, I>(line: I, init_indents: usize) -> Vec<usize>
+    where I: IntoIterator<Item = &'a str> + Clone
+{
+    let mut lines = line.clone().into_iter().enumerate();
+    let mut indexs = Vec::new();
+    while let Some((line_st, _)) = lines.find(|(_, s)| indentation_num(s) > init_indents) {
+        // line_st needs checking if it is at the first line
+        indexs.push(line_st);
+        indexs.extend(lines.find(|(_, s)| indentation_num(s) == init_indents).map(|line_ed| line_ed.0));
+    }
+    if indexs.len() % 2 == 1 {
+        indexs.push(line.clone().into_iter().count());
+    }
+    indexs
+}
 /// Splits a str into two part according to if there's an indentation at a line
 /// Returns a tuple of them in Vecs like `(no_indentation, with_indentation)`
 pub(crate) fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
@@ -24,19 +39,8 @@ pub(crate) fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
         return (Vec::new(), Vec::new());
     }
     let init_indents = indentation_num(s.lines().next().unwrap());
-    let mut lines = s.lines().enumerate();
-    let mut indexs = Vec::new();
-    while let Some((line_st, _)) = lines.find(|(_, s)| indentation_num(s) > init_indents) {
-        // line_st needs checking if it is at the first line
-        indexs.push(line_st);
-        if let Some((line_ed, _)) = lines.find(|(_, s)| indentation_num(s) == init_indents) {
-            indexs.push(line_ed);
-        }
-    }
+    let indexs = find_indentation(s.lines(), init_indents);
     let mut lines = s.lines().collect::<Vec<_>>();
-    if indexs.len() % 2 == 1 {
-        indexs.push(lines.len());
-    }
     let mut in_scope = Vec::new();
     let mut out_scope = Vec::new();
     let mut indexs_iter = indexs.iter();
