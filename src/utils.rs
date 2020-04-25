@@ -29,7 +29,7 @@ fn find_indentation<'a, I>(line: I, init_indents: usize) -> Vec<usize>
         indexs.extend(lines.find(|(_, s)| indentation_num(s) == init_indents).map(|ed| ed.0));
     }
     if indexs.len() % 2 == 1 {
-        indexs.push(line.clone().into_iter().count());
+        indexs.push(line.into_iter().count());
     }
     indexs
 }
@@ -39,9 +39,10 @@ pub(crate) fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
     if s == "" {
         return (Vec::new(), Vec::new());
     }
-    let init_indents = indentation_num(s.lines().next().unwrap());
+    let mut lines = s.lines().peekable();
+    let init_indents = indentation_num(lines.peek().unwrap());
     let indexs = find_indentation(s.lines(), init_indents);
-    let mut lines = s.lines().collect::<Vec<_>>();
+    let mut lines = lines.collect::<Vec<_>>();
     let mut in_scope = Vec::new();
     let mut out_scope = Vec::new();
     let mut indexs_iter = indexs.iter();
@@ -49,11 +50,11 @@ pub(crate) fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
     while let Some(i) = indexs_iter.next() {
         let rest = lines.split_off(i - current_index - 1);
         out_scope.append(&mut mem::replace(&mut lines, rest));
-        current_index = i.clone();
+        current_index = *i;
         if let Some(j) = indexs_iter.next() {
             let rest = lines.split_off(j - current_index + 1);
             in_scope.push(mem::replace(&mut lines, rest));
-            current_index = j.clone();
+            current_index = *j;
         }
     }
     (out_scope, in_scope)

@@ -21,9 +21,11 @@ impl FromStr for Header {
     }
 }
 
-fn parse_header(s: &str) -> HanaResult<Header> {
+fn parse_header_from_iter<'a, I>(iter: I) -> HanaResult<Header>
+    where I: IntoIterator<Item = &'a str>
+{
     let mut headers = BTreeMap::new();
-    for line in s.lines() {
+    for line in iter.into_iter() {
         match tags!("title", "performer", "songwriter", "catalog", "cdtextfile")(line) {
             Ok((content, command)) => match utils::quotec(content.trim()) {
                 Ok((_, content)) | Err(NomErr::Error((content, _))) => headers.entry(command.to_ascii_lowercase())
@@ -48,4 +50,7 @@ fn parse_header(s: &str) -> HanaResult<Header> {
         cdtextfile: cdtextfile.map(|mut v| v.pop()).flatten(),
     };
     Ok(header)
+}
+fn parse_header(s: &str) -> HanaResult<Header> {
+    parse_header_from_iter(s.lines())
 }
