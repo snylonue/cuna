@@ -22,7 +22,7 @@ use failure::Error;
 use std::fs;
 use std::io::Read;
 use std::str::FromStr;
-use crate::filedata::FileInfo;
+use crate::track::FileTrucks;
 use crate::header::Header;
 use crate::comment::Comment;
 
@@ -31,7 +31,7 @@ type HanaResult<T> = Result<T, Error>;
 #[derive(Debug)]
 pub struct CueSheet {
     pub header: Header,
-    pub tracks: Vec<FileInfo>,
+    pub tracks: Vec<FileTrucks>,
     pub comments: Comment,
 }
 

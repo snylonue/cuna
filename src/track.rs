@@ -8,7 +8,7 @@ pub struct Index {
 #[derive(Debug)]
 pub struct Track {
     pub id: u8, // truck-id must between 1 and 99
-    pub ttype: String,
+    pub track_type: String,
     pub index: Vec<Index>,
     pub pregap: Option<String>,
     pub postgap: Option<String>,
@@ -19,8 +19,8 @@ pub struct Track {
     pub flags: Option<Vec<String>>
 }
 #[derive(Debug)]
-pub struct FileInfo {
+pub struct FileTrucks {
     pub name: String,
-    pub ftype: String,
+    pub data_type: String,
     pub trucks: Vec<Track>,
 }

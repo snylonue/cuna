@@ -15,7 +15,7 @@ impl Comment {
     }
 }
 impl<S: Into<String>> FromIterator<S> for Comment {
-    fn from_iter<T: IntoIterator<Item=S>>(iter: T) -> Self {
+    fn from_iter<T: IntoIterator<Item = S>>(iter: T) -> Self {
         Self(iter.into_iter().map(Into::into).collect())
     }
 }
