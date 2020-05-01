@@ -19,8 +19,9 @@ pub struct Track {
     pub flags: Option<Vec<String>>
 }
 #[derive(Debug)]
-pub struct FileTrucks {
+pub struct FileTracks {
     pub name: String,
     pub data_type: String,
     pub trucks: Vec<Track>,
+}
 }
