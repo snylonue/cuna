@@ -15,18 +15,18 @@ pub(crate) fn quote() -> impl Fn(&str) -> IResult<&str, &str, (&str, ErrorKind)>
 pub fn quotec(content: &str) -> IResult<&str, &str>  {
     quote()(content)
 }
-pub(crate) fn indentation_num(s: &str) -> usize {
+pub(crate) fn indentation_count(s: &str) -> usize {
     space0::<_, (_, ErrorKind)>(s).map(|(_, o)| o.len()).unwrap()
 }
-fn find_indentation<'a, I>(line: I, init_indents: usize) -> Vec<usize>
+fn find_indentations<'a, I>(line: I, init_indents: usize) -> Vec<usize>
     where I: IntoIterator<Item = &'a str> + Clone
 {
     let mut lines = line.clone().into_iter().enumerate();
     let mut indexs = Vec::new();
-    while let Some((line_st, _)) = lines.find(|(_, s)| indentation_num(s) > init_indents) {
+    while let Some((line_st, _)) = lines.find(|(_, s)| indentation_count(s) > init_indents) {
         // line_st needs checking if it is at the first line
         indexs.push(line_st);
-        indexs.extend(lines.find(|(_, s)| indentation_num(s) == init_indents).map(|ed| ed.0));
+        indexs.extend(lines.find(|(_, s)| indentation_count(s) == init_indents).map(|ed| ed.0));
     }
     if indexs.len() % 2 == 1 {
         indexs.push(line.into_iter().count());
@@ -35,14 +35,18 @@ fn find_indentation<'a, I>(line: I, init_indents: usize) -> Vec<usize>
 }
 /// Splits a str into two part according to if there's an indentation at a line
 /// Returns a tuple of them in Vecs like `(no_indentation, with_indentation)`
-pub(crate) fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
-    if s == "" {
-        return (Vec::new(), Vec::new());
-    }
-    let mut lines = s.lines().peekable();
-    let init_indents = indentation_num(lines.peek().unwrap());
-    let indexs = find_indentation(s.lines(), init_indents);
-    let mut lines = lines.collect::<Vec<_>>();
+pub(crate) fn scope<'a, I>(lines: I) -> Option<(Vec<&'a str>, Vec<Vec<&'a str>>)>
+    where I: IntoIterator<Item = &'a str> + Clone
+{
+    let mut lines_peek = lines.clone().into_iter().peekable();
+    let first_line = if let Some(line) = lines_peek.peek() {
+        line
+    } else {
+        return None
+    };
+    let init_indents = indentation_count(first_line);
+    let indexs = find_indentations(lines, init_indents);
+    let mut lines = lines_peek.collect::<Vec<_>>();
     let mut in_scope = Vec::new();
     let mut out_scope = Vec::new();
     let mut indexs_iter = indexs.iter();
@@ -57,5 +61,5 @@ pub(crate) fn scope(s: &str) -> (Vec<&str>, Vec<Vec<&str>>) {
             current_index = *j;
         }
     }
-    (out_scope, in_scope)
+    Some((out_scope, in_scope))
 }

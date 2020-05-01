@@ -21,7 +21,7 @@ impl FromStr for Header {
     }
 }
 
-pub(crate) fn parse_header_from_iter<'a, I>(iter: I) -> HanaResult<Header>
+pub(crate) fn parse_header_lines<'a, I>(iter: I) -> HanaResult<Header>
     where I: IntoIterator<Item = &'a str>
 {
     let mut headers = BTreeMap::new();
@@ -52,5 +52,5 @@ pub(crate) fn parse_header_from_iter<'a, I>(iter: I) -> HanaResult<Header>
     Ok(header)
 }
 fn parse_header(s: &str) -> HanaResult<Header> {
-    parse_header_from_iter(s.lines())
+    parse_header_lines(s.lines())
 }
