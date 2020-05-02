@@ -38,7 +38,6 @@ pub struct FileTracks {
 }
 
 impl FromStr for Index {
-
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -58,9 +57,12 @@ fn parse_track_lines<'a, I>(lines: I) -> HanaResult<Track>
     let (_, (id, track_type)) = preceded(tag("TRACK "), tuple((utils::take_digit2, preceded(tag(" "), rest))))(first_line.trim()).unwrap();
     for line in lines {
         match tags!("title", "performer", "songwriter", "isrc", "flags", "pregap", "postgap")(line.trim()) {
-            Ok((content, command)) => commands.entry(command.to_ascii_lowercase())
-                .or_insert_with(|| Vec::with_capacity(1))
-                .push(content),
+            Ok((content, command)) => match utils::quote_opt(content.trim()) {
+                Ok((_, content)) => commands.entry(command.to_ascii_lowercase())
+                    .or_insert_with(|| Vec::with_capacity(1))
+                    .push(content),
+                _ => return Err(failure::err_msg("Unexcept error while parsing track")),
+            },
             Err(NomErr::Error((content, _))) => indexs.push(content),
             _ => return Err(failure::err_msg("Unexcept error while parsing track")),
         }
@@ -70,29 +72,30 @@ fn parse_track_lines<'a, I>(lines: I) -> HanaResult<Track>
     let index = indexs.into_iter()
         .map(FromStr::from_str)
         .collect::<Result<Vec<_>, _>>()?;
+    let to_owned = |v: Vec<&str>| v.into_iter().map(|s| s.to_owned()).collect();
     let track = Track {
         id: id.parse()?,
         track_type: track_type.to_owned(),
         index: index,
         pregap: match pregap {
             Some(pregaps) if pregaps.len() == 1 => Some(pregaps[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Too much pregaps")),
+            Some(_) => return Err(failure::err_msg("Too many pregaps")),
             None => None,
         },
         postgap: match postgap {
             Some(postgaps) if postgaps.len() == 1 => Some(postgaps[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Too much pregaps")),
+            Some(_) => return Err(failure::err_msg("Too many postgap")),
             None => None,
         },
-        title: title.map(|t| t.into_iter().map(|s| s.to_owned()).collect()),
-        performer: performer.map(|t| t.into_iter().map(|s| s.to_owned()).collect()),
-        songwriter: songwriter.map(|t| t.into_iter().map(|s| s.to_owned()).collect()),
+        title: title.map(to_owned),
+        performer: performer.map(to_owned),
+        songwriter: songwriter.map(to_owned),
         isrc: match isrc {
             Some(isrcs) if isrcs.len() == 1 => Some(isrcs[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Too much isrcs")),
+            Some(_) => return Err(failure::err_msg("Too many isrcs")),
             None => None,
         },
-        flags: flags.map(|t| t.into_iter().map(|s| s.to_owned()).collect()),
+        flags: flags.map(to_owned),
     };
     Ok(track)
 }
@@ -101,7 +104,7 @@ pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> HanaResult<FileTracks>
 {
     let mut lines = lines.into_iter();
     let first_line = lines.next().unwrap();
-    let (name, data_type) = preceded(tag("FILE "), alt((utils::quotec, take_until(" "))))(first_line)
+    let (name, data_type) = preceded(tag("FILE "), alt((utils::quote_opt, take_until(" "))))(first_line)
         .map(|(dt, n)| (n, dt.trim_start()))
         .unwrap();
     let (_, tracks) = utils::scope(lines).unwrap();
@@ -111,4 +114,6 @@ pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> HanaResult<FileTracks>
         .collect::<Result<Vec<_>, _>>()?;
     Ok(FileTracks { name: name.to_owned(), data_type: data_type.to_owned(), tracks })
 }
+pub fn parse_filetracks<S: AsRef<str>>(_s: S) -> HanaResult<FileTracks> {
+    unimplemented!()
 }

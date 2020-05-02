@@ -5,13 +5,18 @@ use nom::bytes::complete::take_until;
 use nom::bytes::complete::take_while_m_n;
 use nom::sequence::delimited;
 use nom::character::complete::space0;
+use nom::branch::alt;
+use nom::combinator::rest;
 use std::mem;
 
 pub(crate) fn parse_line<'a>(line: &'a str, head: &str) -> IResult<&'a str, &'a str> {
     tag(head)(line)
 }
-pub fn quotec(content: &str) -> IResult<&str, &str>  {
+pub fn quote(content: &str) -> IResult<&str, &str>  {
     delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(content)
+}
+pub fn quote_opt(content: &str) -> IResult<&str, &str> {
+    alt((quote, rest))(content)
 }
 pub(crate) fn take_digit2(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
     take_while_m_n(2, 2, |c: char| c.is_digit(10))(s)

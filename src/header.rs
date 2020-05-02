@@ -1,6 +1,4 @@
 use failure::Error;
-use nom::combinator::rest;
-use nom::branch::alt;
 use std::str::FromStr;
 use std::collections::BTreeMap;
 use crate::utils;
@@ -28,7 +26,7 @@ pub(crate) fn parse_header_lines<'a, I>(iter: I) -> HanaResult<Header>
     let mut headers = BTreeMap::new();
     for line in iter {
         match tags!("title", "performer", "songwriter", "catalog", "cdtextfile")(line) {
-            Ok((content, command)) => match alt((utils::quotec, rest))(content.trim()) {
+            Ok((content, command)) => match utils::quote_opt(content.trim()) {
                 Ok((_, content)) => headers.entry(command.to_ascii_lowercase())
                     .or_insert_with(|| Vec::with_capacity(1))
                     .push(content.to_owned()),
@@ -45,7 +43,7 @@ pub(crate) fn parse_header_lines<'a, I>(iter: I) -> HanaResult<Header>
         songwriter,
         catalog: match catalog {
             Some(s) if s.len() == 1 && s[0].len() == 13 => Some(s[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Invaild catalog")),
+            Some(_) => return Err(failure::err_msg("Invaild or too many catalog(s)")),
             None => None,
         },
         cdtextfile: cdtextfile.map(|mut v| v.pop()).flatten(),
