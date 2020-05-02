@@ -7,7 +7,7 @@ pub struct Comment(pub Vec<String>);
 impl Comment {
     pub fn new(s: &str) -> Self {
         s.lines()
-            .filter_map(|s| utils::parse_line(s, "REM")
+            .filter_map(|s| utils::keywordc(s, "REM")
                 .ok()
                 .map(|(c, _)| c.trim())
             )

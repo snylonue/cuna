@@ -9,8 +9,11 @@ use nom::branch::alt;
 use nom::combinator::rest;
 use std::mem;
 
-pub(crate) fn parse_line<'a>(line: &'a str, head: &str) -> IResult<&'a str, &'a str> {
-    tag(head)(line)
+pub(crate) fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
+    move |i: &str| tag(kd)(i)
+}
+pub(crate) fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &'a str> {
+    keyword(kd)(content)
 }
 pub fn quote(content: &str) -> IResult<&str, &str>  {
     delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(content)
