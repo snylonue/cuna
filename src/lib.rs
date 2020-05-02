@@ -35,6 +35,25 @@ pub struct CueSheet {
     pub comments: Comment,
 }
 
+impl CueSheet {
+    pub fn new(header: Header, tracks: Vec<FileTracks>, comments: Comment) -> Self {
+        Self { header, tracks, comments }
+    }
+}
+impl FromStr for CueSheet {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (comments, rest) = parse_comments(s);
+        let (headers, files) = utils::scope(rest.lines()).unwrap();
+        let header = header::parse_header_lines(headers)?;
+        let tracks = files.into_iter()
+            .map(|v| v.into_iter())
+            .map(track::parse_filetracks_lines)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Self { header, tracks, comments })
+    }
+}
 fn parse_comments(s: &str) -> (Comment, String) {
     let comments = Comment::new(s);
     let s_without_comments = s.lines()
