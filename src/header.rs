@@ -1,5 +1,6 @@
 use failure::Error;
-use nom::Err as NomErr;
+use nom::combinator::rest;
+use nom::branch::alt;
 use std::str::FromStr;
 use std::collections::BTreeMap;
 use crate::utils;
@@ -25,10 +26,10 @@ pub(crate) fn parse_header_lines<'a, I>(iter: I) -> HanaResult<Header>
     where I: IntoIterator<Item = &'a str>
 {
     let mut headers = BTreeMap::new();
-    for line in iter.into_iter() {
+    for line in iter {
         match tags!("title", "performer", "songwriter", "catalog", "cdtextfile")(line) {
-            Ok((content, command)) => match utils::quotec(content.trim()) {
-                Ok((_, content)) | Err(NomErr::Error((content, _))) => headers.entry(command.to_ascii_lowercase())
+            Ok((content, command)) => match alt((utils::quotec, rest))(content.trim()) {
+                Ok((_, content)) => headers.entry(command.to_ascii_lowercase())
                     .or_insert_with(|| Vec::with_capacity(1))
                     .push(content.to_owned()),
                 _ => return Err(failure::err_msg("Unexcept error while parsing header")),

@@ -5,20 +5,16 @@ use nom::bytes::complete::take_until;
 use nom::bytes::complete::take_while_m_n;
 use nom::sequence::delimited;
 use nom::character::complete::space0;
-use nom::character::is_digit;
 use std::mem;
 
 pub(crate) fn parse_line<'a>(line: &'a str, head: &str) -> IResult<&'a str, &'a str> {
     tag(head)(line)
 }
-pub(crate) fn quote() -> impl Fn(&str) -> IResult<&str, &str, (&str, ErrorKind)> {
-    |i: &str| delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(i)
-}
 pub fn quotec(content: &str) -> IResult<&str, &str>  {
-    quote()(content)
+    delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(content)
 }
 pub(crate) fn take_digit2(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
-    take_while_m_n(2, 2, |c| is_digit(c as u8))(s)
+    take_while_m_n(2, 2, |c: char| c.is_digit(10))(s)
 }
 pub(crate) fn indentation_count(s: &str) -> usize {
     space0::<_, (_, ErrorKind)>(s).map(|(_, o)| o.len()).unwrap()
