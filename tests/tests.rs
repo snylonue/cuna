@@ -19,4 +19,20 @@ mod time {
         assert!("xd".parse::<Duration>().is_err());
         assert!("6:772:11".parse::<Duration>().is_err());
     }
+    #[test]
+    fn modify() {
+        let mut duration = Duration::new(21, 29, 73);
+        duration.set_frames(21);
+        assert_eq!(duration, Duration::new(21, 29, 21));
+        duration.set_seconds(33);
+        assert_eq!(duration, Duration::new(21, 33, 21));
+        duration.set_minutes(28);
+        assert_eq!(duration, Duration::new(28, 33, 21));
+    }
+    #[test]
+    #[should_panic]
+    fn modify_panic() {
+        let mut duration = Duration::new(61, 29, 73);
+        duration.set_frames(88);
+    }
 }

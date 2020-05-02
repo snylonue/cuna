@@ -9,7 +9,7 @@ use std::str::FromStr;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result as FmtResult;
-use crate::utils;
+use crate::utils::take_digit2;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Duration {
@@ -47,6 +47,21 @@ impl Duration {
     pub fn frames(&self) -> u32 {
         self.frames as u32
     }
+    pub fn set_minutes(&mut self, minutes: u32) {
+        self.seconds = self.seconds() + minutes * 60;
+    }
+    pub fn set_seconds(&mut self, seconds: u32) {
+        if seconds >= 60 {
+            panic!("Invaild seconds {}", seconds);
+        }
+        self.seconds = self.minutes() * 60 + seconds;
+    }
+    pub fn set_frames(&mut self, frames: u32) {
+        if frames >= 75 {
+            panic!("Invaild frames {}", frames);
+        }
+        self.frames = frames as u8;
+    }
 }
 
 impl FromStr for Duration {
@@ -54,13 +69,13 @@ impl FromStr for Duration {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let err_msg = |_: NomErr<(_, ErrorKind)>| failure::err_msg("Invaild time");
-        let (_, (minutes, seconds, frames)) = tuple((digit1, preceded(tag(":"), utils::take_digit2), preceded(tag(":"), utils::take_digit2)))(s).map_err(err_msg)?;
+        let (_, (minutes, seconds, frames)) = tuple((digit1, preceded(tag(":"), take_digit2), preceded(tag(":"), take_digit2)))(s).map_err(err_msg)?;
         Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
     }
 }
 
 impl Display for Duration {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{:0>2}:{:0>2}:{:0>2}", self.minutes(), self.seconds(), self.frames)
+        write!(f, "{:0>2}:{:0>2}:{:0>2}", self.minutes(), self.seconds(), self.frames())
     }
 }
