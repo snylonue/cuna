@@ -28,7 +28,7 @@ use crate::comment::Comment;
 
 type HanaResult<T> = Result<T, Error>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CueSheet {
     pub header: Header,
     pub tracks: Vec<FileTracks>,

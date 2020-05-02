@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use crate::utils;
 use crate::HanaResult;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone)]
 pub struct Header {
     pub title: Option<Vec<String>>,
     pub performer: Option<Vec<String>>,

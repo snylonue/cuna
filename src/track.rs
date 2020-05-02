@@ -12,12 +12,12 @@ use crate::HanaResult;
 use crate::time::Duration;
 use crate::utils;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Index {
     pub id: u8, // index id must between 1 and 99
     pub begin_time: Duration,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Track {
     pub id: u8, // truck-id must between 1 and 99
     pub track_type: String,
@@ -30,7 +30,7 @@ pub struct Track {
     pub isrc: Option<String>,
     pub flags: Option<Vec<String>>
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FileTracks {
     pub name: String,
     pub data_type: String,
