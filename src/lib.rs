@@ -8,7 +8,7 @@ macro_rules! get {
 }
 macro_rules! tags {
     ($($heads: expr),*) => {
-        nom::branch::alt::<_, _, (_, nom::error::ErrorKind), _>(($(nom::bytes::complete::tag_no_case($heads),)*))
+        nom::branch::alt::<_, _, (_, nom::error::ErrorKind), _>(($($crate::utils::keyword($heads),)*))
     };
 }
 
@@ -28,7 +28,7 @@ use crate::comment::Comment;
 
 type HanaResult<T> = Result<T, Error>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct CueSheet {
     pub header: Header,
     pub tracks: Vec<FileTracks>,

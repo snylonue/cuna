@@ -4,13 +4,14 @@ use nom::bytes::complete::tag_no_case as tag;
 use nom::bytes::complete::take_until;
 use nom::bytes::complete::take_while_m_n;
 use nom::sequence::delimited;
+use nom::sequence::terminated;
 use nom::character::complete::space0;
 use nom::branch::alt;
 use nom::combinator::rest;
 use std::mem;
 
 pub(crate) fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
-    move |i: &str| tag(kd)(i)
+    move |i: &str| terminated(tag(kd), tag(" "))(i)
 }
 pub(crate) fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &'a str> {
     keyword(kd)(content)

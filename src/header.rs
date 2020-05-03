@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use crate::utils;
 use crate::HanaResult;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Header {
     pub title: Option<Vec<String>>,
     pub performer: Option<Vec<String>>,
@@ -26,7 +26,7 @@ pub(crate) fn parse_header_lines<'a, I>(iter: I) -> HanaResult<Header>
     let mut headers = BTreeMap::new();
     for line in iter {
         match tags!("title", "performer", "songwriter", "catalog", "cdtextfile")(line) {
-            Ok((content, command)) => match utils::quote_opt(content.trim()) {
+            Ok((content, command)) => match utils::quote_opt(content) {
                 Ok((_, content)) => headers.entry(command.to_ascii_lowercase())
                     .or_insert_with(|| Vec::with_capacity(1))
                     .push(content.to_owned()),

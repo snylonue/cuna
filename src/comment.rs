@@ -1,7 +1,7 @@
 use std::iter::FromIterator;
 use crate::utils;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Comment(pub Vec<String>);
 
 impl Comment {
@@ -9,7 +9,7 @@ impl Comment {
         s.lines()
             .filter_map(|s| utils::keywordc(s, "REM")
                 .ok()
-                .map(|(c, _)| c.trim())
+                .map(|(c, _)| c)
             )
             .collect()
     }
