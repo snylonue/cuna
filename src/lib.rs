@@ -62,16 +62,3 @@ fn parse_comments(s: &str) -> (Comment, String) {
         .join("\n");
     (comments, s_without_comments)
 }
-pub fn parse_cue(mut f: fs::File) -> CueSheet {
-    let mut buf = String::new();
-    f.read_to_string(&mut buf).unwrap();
-    buf = buf.trim_start_matches('﻿').replace("\r\n", "\n"); // remove BOM header
-    dbg!(buf.parse::<CueSheet>().unwrap());
-    // extract_file(&buf).unwrap();
-    // let (_, h) = split_cue(&buf).unwrap();
-    // println!("{:#?}", h.parse::<Header>());
-    //let (comment, buf) = parse_comments(&buf.trim_start_matches('﻿')); // remove BOM
-    //println!("{:#?}", comment);
-    //println!("{}", buf);
-    unimplemented!()
-}
