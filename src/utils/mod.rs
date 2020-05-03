@@ -1,3 +1,5 @@
+pub mod parser;
+
 use nom::IResult;
 use nom::error::ErrorKind;
 use nom::bytes::complete::tag_no_case as tag;
