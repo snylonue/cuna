@@ -11,9 +11,10 @@ use nom::combinator::rest;
 use std::mem;
 
 pub(crate) fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
+pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     move |i: &str| terminated(tag(kd), tag(" "))(i)
 }
-pub(crate) fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &'a str> {
+pub fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &'a str> {
     keyword(kd)(content)
 }
 pub fn quote(content: &str) -> IResult<&str, &str>  {

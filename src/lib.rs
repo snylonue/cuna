@@ -57,7 +57,7 @@ impl FromStr for CueSheet {
 fn parse_comments(s: &str) -> (Comment, String) {
     let comments = Comment::new(s);
     let s_without_comments = s.lines()
-        .filter(|s| utils::keywordc(s, "REM ").is_err())
+        .filter(|s| utils::keyword("REM")(s).is_err())
         .collect::<Vec<&str>>()
         .join("\n");
     (comments, s_without_comments)
