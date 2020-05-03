@@ -1,7 +1,6 @@
 use failure::format_err;
 use nom::bytes::complete::take_until;
 use nom::error::ErrorKind;
-use std::iter::Enumerate;
 use std::vec::IntoIter;
 use crate::HanaResult;
 use crate::CueSheet;
@@ -89,20 +88,20 @@ impl<'a> Lines<'a> {
     }
 }
 impl<'a> IntoIterator for Lines<'a> {
-    type Item = (usize, Line<'a>);
-    type IntoIter = Enumerate<IntoIter<Line<'a>>>;
+    type Item = Line<'a>;
+    type IntoIter = IntoIter<Line<'a>>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.lines.into_iter().enumerate()
+        self.lines.into_iter()
     }
 }
 impl<'a> Iterator for LinesIter<'a> {
-    type Item = (usize, &'a Line<'a>);
+    type Item = &'a Line<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.current_line < self.inner.len() {
             self.current_line += 1;
-            self.inner.line(self.current_line - 1).map(|l| (self.current_line - 1, l))
+            self.inner.line(self.current_line - 1)
         } else {
             None
         }
