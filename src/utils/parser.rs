@@ -1,5 +1,6 @@
 use failure::format_err;
 use nom::bytes::complete::take_until;
+use nom::Err as NomErr;
 use nom::error::ErrorKind;
 use std::vec::IntoIter;
 use crate::HanaResult;
@@ -39,10 +40,10 @@ pub(crate) struct LinesIter<'a> {
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> HanaResult<Self> {
-        let (content, command) = take_until::<_, _, (_, ErrorKind)>(" ")(s)
-            .map_err(|_| format_err!("Invaild command {}", s))?;
-        let map_err = |_| format_err!("Invaild command {} {}", content, command);
-        let (rest, content) = super::quote_opt(content.trim()).map_err(map_err)?;
+        let (content, command) = take_until(" ")(s)
+            .map_err(|_: NomErr<(_, ErrorKind)>| format_err!("Invaild command {}", s))?;
+        let (rest, content) = super::quote_opt(content.trim())
+            .map_err(|_| format_err!("Invaild command {} {}", content, command))?;
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
             "title" => Ok(Self::Title(content)),
@@ -108,6 +109,8 @@ impl<'a> Iterator for LinesIter<'a> {
     }
 }
 
+#[allow(unused_mut)]
+#[allow(unused_variables)]
 pub fn parse(s: &str) -> HanaResult<CueSheet> {
     let lines = Lines::new(s)?;
     let mut cue = CueSheet::default();
