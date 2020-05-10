@@ -1,4 +1,5 @@
-use failure::Error;
+use anyhow::Error;
+use anyhow::Result;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::sequence::preceded;
@@ -6,9 +7,7 @@ use nom::sequence::tuple;
 use nom::error::ErrorKind;
 use nom::Err as NomErr;
 use std::str::FromStr;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt::Result as FmtResult;
+use std::fmt;
 use crate::utils::take_digit2;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -68,14 +67,14 @@ impl FromStr for Duration {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let err_msg = |_: NomErr<(_, ErrorKind)>| failure::err_msg("Invaild time");
+        let err_msg = |_: NomErr<(_, ErrorKind)>| anyhow::anyhow!("Invaild time");
         let (_, (minutes, seconds, frames)) = tuple((digit1, preceded(tag(":"), take_digit2), preceded(tag(":"), take_digit2)))(s).map_err(err_msg)?;
         Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
     }
 }
 
-impl Display for Duration {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+impl fmt::Display for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:0>2}:{:0>2}:{:0>2}", self.minutes(), self.seconds(), self.frames())
     }
 }

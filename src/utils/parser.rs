@@ -1,9 +1,8 @@
-use failure::format_err;
+use anyhow::Result;
 use nom::bytes::complete::take_until;
 use nom::Err as NomErr;
 use nom::error::ErrorKind;
 use std::vec::IntoIter;
-use crate::HanaResult;
 use crate::CueSheet;
 
 #[derive(Debug, Clone)]
@@ -39,11 +38,11 @@ pub(crate) struct LinesIter<'a> {
 }
 
 impl<'a> Command<'a> {
-    pub fn new(s: &'a str) -> HanaResult<Self> {
+    pub fn new(s: &'a str) -> Result<Self> {
         let (content, command) = take_until(" ")(s)
-            .map_err(|_: NomErr<(_, ErrorKind)>| format_err!("Invaild command {}", s))?;
+            .map_err(|_: NomErr<(_, ErrorKind)>| anyhow::anyhow!("Invaild command {}", s))?;
         let (rest, content) = super::quote_opt(content.trim())
-            .map_err(|_| format_err!("Invaild command {} {}", content, command))?;
+            .map_err(|_| anyhow::anyhow!("Invaild command {} {}", content, command))?;
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
             "title" => Ok(Self::Title(content)),
@@ -58,19 +57,19 @@ impl<'a> Command<'a> {
             "postgap" => Ok(Self::Postgap(content)),
             "isrc" => Ok(Self::Isrc(content)),
             "flag" => Ok(Self::Flag(content)),
-            _ => Err(format_err!("UnKnown command `{}`", command)),
+            _ => Err(anyhow::anyhow!("UnKnown command `{}`", command)),
         }
     }
 }
 impl<'a> Line<'a> {
-    pub fn new(s: &'a str, current_line: usize) -> HanaResult<Self> {
+    pub fn new(s: &'a str, current_line: usize) -> Result<Self> {
         let indentations = super::indentation_count(s);
-        let command = Command::new(&s.trim()).map_err(|e| format_err!("{} at line {}", e, current_line + 1))?;
+        let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, current_line + 1))?;
         Ok( Self { command, indentations, current_line })
     }
 }
 impl<'a> Lines<'a> {
-    pub fn new(s: &'a str) -> HanaResult<Self> {
+    pub fn new(s: &'a str) -> Result<Self> {
         let lines = s.lines()
             .enumerate()
             .map(|(line, s)| Line::new(s, line))
@@ -111,7 +110,7 @@ impl<'a> Iterator for LinesIter<'a> {
 
 #[allow(unused_mut)]
 #[allow(unused_variables)]
-pub fn parse(s: &str) -> HanaResult<CueSheet> {
+pub fn parse(s: &str) -> Result<CueSheet> {
     let lines = Lines::new(s)?;
     let mut cue = CueSheet::default();
     dbg!(lines);

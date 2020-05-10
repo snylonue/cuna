@@ -1,4 +1,5 @@
-use failure::Error;
+use anyhow::Error;
+use anyhow::Result;
 use nom::branch::alt;
 use nom::sequence::tuple;
 use nom::sequence::preceded;
@@ -8,7 +9,6 @@ use nom::combinator::rest;
 use nom::Err as NomErr;
 use std::collections::BTreeMap;
 use std::str::FromStr;
-use crate::HanaResult;
 use crate::time::Duration;
 use crate::utils;
 
@@ -31,7 +31,7 @@ pub struct Track {
     pub flags: Option<Vec<String>>
 }
 #[derive(Debug, Clone)]
-pub struct FileTracks {
+pub struct Tracks {
     pub name: String,
     pub data_type: String,
     pub tracks: Vec<Track>,
@@ -42,12 +42,12 @@ impl FromStr for Index {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (_, (id, duration)) = tuple((preceded(tag("INDEX "), utils::take_digit2), preceded(tag(" "), rest)))(s)
-            .map_err(|_| failure::err_msg("error"))?;
+            .map_err(|_| anyhow::anyhow!("error"))?;
         Ok(Self { id: id.parse()?, begin_time: duration.parse()? })
     }
 }
 
-fn parse_track_lines<'a, I>(lines: I) -> HanaResult<Track>
+fn parse_track_lines<'a, I>(lines: I) -> Result<Track>
     where I: Iterator<Item = &'a str>
 {
     let mut commands = BTreeMap::new();
@@ -61,10 +61,10 @@ fn parse_track_lines<'a, I>(lines: I) -> HanaResult<Track>
                 Ok((_, content)) => commands.entry(command.to_ascii_lowercase())
                     .or_insert_with(|| Vec::with_capacity(1))
                     .push(content),
-                _ => return Err(failure::err_msg("Unexcept error while parsing track")),
+                _ => return Err(anyhow::anyhow!("Unexcept error while parsing track")),
             },
             Err(NomErr::Error((content, _))) => indexs.push(content),
-            _ => return Err(failure::err_msg("Unexcept error while parsing track")),
+            _ => return Err(anyhow::anyhow!("Unexcept error while parsing track")),
         }
     }
     let [title, performer, songwriter, isrc, flags, pregap, postgap] = get!(commands,
@@ -79,12 +79,12 @@ fn parse_track_lines<'a, I>(lines: I) -> HanaResult<Track>
         index: index,
         pregap: match pregap {
             Some(pregaps) if pregaps.len() == 1 => Some(pregaps[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Too many pregaps")),
+            Some(_) => return Err(anyhow::anyhow!("Too many pregaps")),
             None => None,
         },
         postgap: match postgap {
             Some(postgaps) if postgaps.len() == 1 => Some(postgaps[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Too many postgap")),
+            Some(_) => return Err(anyhow::anyhow!("Too many postgap")),
             None => None,
         },
         title: title.map(to_owned),
@@ -92,14 +92,14 @@ fn parse_track_lines<'a, I>(lines: I) -> HanaResult<Track>
         songwriter: songwriter.map(to_owned),
         isrc: match isrc {
             Some(isrcs) if isrcs.len() == 1 => Some(isrcs[0].parse()?),
-            Some(_) => return Err(failure::err_msg("Too many isrcs")),
+            Some(_) => return Err(anyhow::anyhow!("Too many isrcs")),
             None => None,
         },
         flags: flags.map(to_owned),
     };
     Ok(track)
 }
-pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> HanaResult<FileTracks>
+pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> Result<Tracks>
     where I: Iterator<Item = &'a str> + Clone
 {
     let mut lines = lines.into_iter();
@@ -112,8 +112,8 @@ pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> HanaResult<FileTracks>
         .map(IntoIterator::into_iter)
         .map(parse_track_lines)
         .collect::<Result<Vec<_>, _>>()?;
-    Ok(FileTracks { name: name.to_owned(), data_type: data_type.to_owned(), tracks })
+    Ok(Tracks { name: name.to_owned(), data_type: data_type.to_owned(), tracks })
 }
-pub fn parse_filetracks<S: AsRef<str>>(_s: S) -> HanaResult<FileTracks> {
+pub fn parse_filetracks<S: AsRef<str>>(_s: S) -> Result<Tracks> {
     unimplemented!()
 }

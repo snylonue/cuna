@@ -18,26 +18,27 @@ pub mod header;
 pub mod track;
 pub mod comment;
 
-use failure::Error;
+use anyhow::Error;
 use std::fs;
 use std::io::Read;
 use std::str::FromStr;
-use crate::track::FileTracks;
+use crate::track::Tracks;
 use crate::header::Header;
 use crate::comment::Comment;
-
-type HanaResult<T> = Result<T, Error>;
 
 #[derive(Debug, Clone, Default)]
 pub struct CueSheet {
     pub header: Header,
-    pub tracks: Vec<FileTracks>,
+    pub tracks: Vec<Tracks>,
     pub comments: Comment,
 }
 
 impl CueSheet {
-    pub fn new(header: Header, tracks: Vec<FileTracks>, comments: Comment) -> Self {
+    pub fn new(header: Header, tracks: Vec<Tracks>, comments: Comment) -> Self {
         Self { header, tracks, comments }
+    }
+    pub fn push_tracks(&mut self, track: Tracks) {
+        self.tracks.push(track);
     }
 }
 impl FromStr for CueSheet {
