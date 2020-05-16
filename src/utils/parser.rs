@@ -2,7 +2,6 @@ use anyhow::Result;
 use nom::bytes::complete::take_until;
 use nom::Err as NomErr;
 use nom::error::ErrorKind;
-use std::vec::IntoIter;
 use crate::CueSheet;
 
 #[derive(Debug, Clone)]
@@ -21,6 +20,13 @@ pub(crate) enum Command<'a> {
     Isrc(&'a str),
     Flag(&'a str),
 }
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub(crate) enum State {
+    Outer,
+    File,
+    Track,
+}
 #[derive(Debug, Clone)]
 pub(crate) struct Line<'a> {
     command: Command<'a>,
@@ -32,9 +38,11 @@ pub(crate) struct Lines<'a> {
     lines: Vec<Line<'a>>,
 }
 #[derive(Debug, Clone)]
-pub(crate) struct LinesIter<'a> {
-    inner: &'a Lines<'a>,
+pub(crate) struct Parser<'a> {
+    state: State,
+    lines: Lines<'a>,
     current_line: usize,
+    sheet: CueSheet,
 }
 
 impl<'a> Command<'a> {
@@ -68,6 +76,7 @@ impl<'a> Line<'a> {
         Ok( Self { command, indentations, current_line })
     }
 }
+#[allow(dead_code)]
 impl<'a> Lines<'a> {
     pub fn new(s: &'a str) -> Result<Self> {
         let lines = s.lines()
@@ -81,30 +90,6 @@ impl<'a> Lines<'a> {
     }
     pub fn line(&self, l: usize) -> Option<&Line<'a>> {
         self.lines.get(l)
-    }
-    #[allow(dead_code)]
-    pub fn iter(&self) -> LinesIter {
-        LinesIter { inner: &self, current_line: 0 }
-    }
-}
-impl<'a> IntoIterator for Lines<'a> {
-    type Item = Line<'a>;
-    type IntoIter = IntoIter<Line<'a>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.lines.into_iter()
-    }
-}
-impl<'a> Iterator for LinesIter<'a> {
-    type Item = &'a Line<'a>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current_line < self.inner.len() {
-            self.current_line += 1;
-            self.inner.line(self.current_line - 1)
-        } else {
-            None
-        }
     }
 }
 
