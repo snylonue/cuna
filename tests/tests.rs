@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod time {
-    use hana::time::*;
+    use cuna::time::*;
     #[test]
     fn create() {
         let duration = Duration::new(61, 29, 73);
