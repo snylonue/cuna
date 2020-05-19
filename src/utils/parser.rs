@@ -2,6 +2,7 @@ use anyhow::Result;
 use nom::bytes::complete::take_until;
 use nom::Err as NomErr;
 use nom::error::ErrorKind;
+use std::collections::VecDeque;
 use crate::CueSheet;
 
 #[derive(Debug, Clone)]
@@ -34,13 +35,9 @@ pub(crate) struct Line<'a> {
     current_line: usize,
 }
 #[derive(Debug, Clone)]
-pub(crate) struct Lines<'a> {
-    lines: Vec<Line<'a>>,
-}
-#[derive(Debug, Clone)]
 pub(crate) struct Parser<'a> {
     state: State,
-    lines: Lines<'a>,
+    lines: VecDeque<Line<'a>>,
     current_line: usize,
     sheet: CueSheet,
 }
@@ -105,6 +102,7 @@ impl<'a> Command<'a> {
         }
     }
 }
+#[allow(dead_code)]
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, current_line: usize) -> Result<Self> {
         let indentations = super::indentation_count(s);
@@ -112,28 +110,9 @@ impl<'a> Line<'a> {
         Ok( Self { command, indentations, current_line })
     }
 }
-#[allow(dead_code)]
-impl<'a> Lines<'a> {
-    pub fn new(s: &'a str) -> Result<Self> {
-        let lines = s.lines()
-            .enumerate()
-            .map(|(line, s)| Line::new(s, line))
-            .collect::<Result<_, _>>()?;
-        Ok(Self { lines })
-    }
-    pub fn len(&self) -> usize {
-        self.lines.len()
-    }
-    pub fn line(&self, l: usize) -> Option<&Line<'a>> {
-        self.lines.get(l)
-    }
-}
 
 #[allow(unused_mut)]
 #[allow(unused_variables)]
 pub fn parse(s: &str) -> Result<CueSheet> {
-    let lines = Lines::new(s)?;
-    let mut cue = CueSheet::default();
-    dbg!(lines);
     unimplemented!()
 }
