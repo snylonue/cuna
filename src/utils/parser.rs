@@ -23,7 +23,7 @@ pub(crate) enum Command<'a> {
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub(crate) enum State {
-    Outer,
+    Global,
     File,
     Track,
 }
@@ -45,6 +45,7 @@ pub(crate) struct Parser<'a> {
     sheet: CueSheet,
 }
 
+#[allow(dead_code)]
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self> {
         let (content, command) = take_until(" ")(s)
@@ -66,6 +67,41 @@ impl<'a> Command<'a> {
             "isrc" => Ok(Self::Isrc(content)),
             "flag" => Ok(Self::Flag(content)),
             _ => Err(anyhow::anyhow!("UnKnown command `{}`", command)),
+        }
+    }
+    pub fn may_in_global_scope(&self) -> bool {
+        match *self {
+            Self::Rem(_) => true,
+            Self::Title(_) => true,
+            Self::Performer(_) => true,
+            Self::Songwriter(_) => true,
+            Self::Catalog(_) => true,
+            Self::Cdtextfile(_) => true,
+            Self::File(..) => true,
+            _ => false,
+        }
+    }
+    pub fn may_in_file_scope(&self) -> bool {
+        match *self {
+            Self::Rem(_) => true,
+            Self::Track(..) => true,
+            _ => false,
+        }
+    }
+    pub fn may_in_track_scope(&self) -> bool {
+        match *self {
+            Self::Rem(_) => true,
+            Self::Title(_) => true,
+            Self::Performer(_) => true,
+            Self::Songwriter(_) => true,
+            Self::Catalog(_) => true,
+            Self::Cdtextfile(_) => true,
+            Self::Index(..) => true,
+            Self::Pregap(_) => true,
+            Self::Postgap(_) => true,
+            Self::Isrc(_) => true,
+            Self::Flag(_) => true,
+            _ => false,
         }
     }
 }
