@@ -1,7 +1,4 @@
 use anyhow::Result;
-use nom::bytes::complete::take_until;
-use nom::Err as NomErr;
-use nom::error::ErrorKind;
 use std::collections::VecDeque;
 use crate::CueSheet;
 
@@ -19,7 +16,7 @@ pub(crate) enum Command<'a> {
     Pregap(&'a str),
     Postgap(&'a str),
     Isrc(&'a str),
-    Flag(&'a str),
+    Flags(&'a str),
 }
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
@@ -45,8 +42,8 @@ pub(crate) struct Parser<'a> {
 #[allow(dead_code)]
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self> {
-        let (content, command) = take_until(" ")(s)
-            .map_err(|_: NomErr<(_, ErrorKind)>| anyhow::anyhow!("Invaild command {}", s))?;
+        let (content, command) = super::split_space(s)
+            .map_err(|_| anyhow::anyhow!("Invaild command {}", s))?;
         let (rest, content) = super::quote_opt(content.trim())
             .map_err(|_| anyhow::anyhow!("Invaild command {} {}", content, command))?;
         match command.to_ascii_lowercase().as_ref() {
@@ -57,12 +54,20 @@ impl<'a> Command<'a> {
             "catalog" => Ok(Self::Catalog(content)),
             "cdtextfile" => Ok(Self::Cdtextfile(content)),
             "file" => Ok(Self::File(rest, content)),
-            "track" => Ok(Self::Track(rest, content)),
-            "index" => Ok(Self::Index(rest, content)),
+            "track" => {
+                let (format, id) = super::split_space(content)
+                    .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
+                Ok(Self::Track(id, format))
+            },
+            "index" => {
+                let (duration, id) = super::split_space(content)
+                    .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
+                Ok(Self::Index(id, duration))
+            },
             "pregap" => Ok(Self::Pregap(content)),
             "postgap" => Ok(Self::Postgap(content)),
             "isrc" => Ok(Self::Isrc(content)),
-            "flag" => Ok(Self::Flag(content)),
+            "flag" => Ok(Self::Flags(content)),
             _ => Err(anyhow::anyhow!("UnKnown command `{}`", command)),
         }
     }
@@ -97,7 +102,7 @@ impl<'a> Command<'a> {
             Self::Pregap(_) => true,
             Self::Postgap(_) => true,
             Self::Isrc(_) => true,
-            Self::Flag(_) => true,
+            Self::Flags(_) => true,
             _ => false,
         }
     }

@@ -24,6 +24,9 @@ pub fn quote(content: &str) -> IResult<&str, &str>  {
 pub fn quote_opt(content: &str) -> IResult<&str, &str> {
     alt((quote, rest))(content)
 }
+pub fn split_space(content: &str) -> IResult<&str, &str> {
+    terminated(take_until(" "), tag(" "))(content)
+}
 pub(crate) fn take_digit2(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
     take_while_m_n(2, 2, |c: char| c.is_digit(10))(s)
 }
