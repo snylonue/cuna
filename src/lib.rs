@@ -17,6 +17,7 @@ pub mod time;
 pub mod header;
 pub mod track;
 pub mod comment;
+pub mod parser;
 
 use anyhow::Error;
 use std::str::FromStr;

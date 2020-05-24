@@ -4,6 +4,7 @@ use crate::CueSheet;
 use crate::track::TrackInfo;
 use crate::track::Track;
 use crate::track::Index;
+use crate::utils;
 
 #[derive(Debug, Clone)]
 pub enum Command<'a> {
@@ -36,9 +37,9 @@ pub struct Parser<'a> {
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self> {
-        let (content, command) = super::split_space(s)
+        let (content, command) = utils::split_space(s)
             .map_err(|_| anyhow::anyhow!("Invaild command {}", s))?;
-        let (rest, content) = super::quote_opt(content.trim())
+        let (rest, content) = utils::quote_opt(content.trim())
             .map_err(|_| anyhow::anyhow!("Invaild command {} {}", content, command))?;
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
@@ -49,12 +50,12 @@ impl<'a> Command<'a> {
             "cdtextfile" => Ok(Self::Cdtextfile(content)),
             "file" => Ok(Self::File(rest, content)),
             "track" => {
-                let (format, id) = super::split_space(content)
+                let (format, id) = utils::split_space(content)
                     .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
                 Ok(Self::Track(id, format))
             },
             "index" => {
-                let (duration, id) = super::split_space(content)
+                let (duration, id) = utils::split_space(content)
                     .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
                 Ok(Self::Index(id, duration))
             },
@@ -103,7 +104,7 @@ impl<'a> Command<'a> {
 }
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, line: usize) -> Result<Self> {
-        let indentations = super::indentation_count(s);
+        let indentations = utils::indentation_count(s);
         let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, line + 1))?;
         Ok( Self { command, indentations, line })
     }
