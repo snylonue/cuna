@@ -46,6 +46,25 @@ impl FromStr for Index {
         Ok(Self { id: id.parse()?, begin_time: duration.parse()? })
     }
 }
+impl Track {
+    pub fn push_title(&mut self, title: String) {
+        self.title.get_or_insert_with(|| Vec::with_capacity(1)).push(title)
+    }
+    pub fn push_performer(&mut self, performer: String) {
+        self.performer.get_or_insert_with(|| Vec::with_capacity(1)).push(performer)
+    }
+    pub fn push_songwriter(&mut self, songwriter: String) {
+        self.songwriter.get_or_insert_with(|| Vec::with_capacity(1)).push(songwriter)
+    }
+}
+impl TrackInfo {
+    pub fn last_track(&self) -> Option<&Track> {
+        self.tracks.last()
+    }
+    pub fn last_track_mut(&mut self) -> Option<&mut Track> {
+        self.tracks.last_mut()
+    }
+}
 
 fn parse_track_lines<'a, I>(lines: I) -> Result<Track>
     where I: Iterator<Item = &'a str>

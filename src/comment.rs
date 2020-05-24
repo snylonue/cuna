@@ -14,6 +14,9 @@ impl Comment {
             })
             .collect()
     }
+    pub fn push(&mut self, s: String) {
+        self.0.push(s)
+    }
 }
 impl<S: Into<String>> FromIterator<S> for Comment {
     fn from_iter<T: IntoIterator<Item = S>>(iter: T) -> Self {

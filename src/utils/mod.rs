@@ -12,7 +12,6 @@ use nom::branch::alt;
 use nom::combinator::rest;
 use std::mem;
 
-pub(crate) fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
 pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     move |i: &str| terminated(tag(kd), tag(" "))(i)
 }

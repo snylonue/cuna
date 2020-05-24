@@ -41,6 +41,18 @@ impl CueSheet {
     pub fn push_track_info(&mut self, track: TrackInfo) {
         self.tracks.push(track);
     }
+    pub fn last_track_info(&self) -> Option<&TrackInfo> {
+        self.tracks.last()
+    }
+    pub fn last_track_info_mut(&mut self) -> Option<&mut TrackInfo> {
+        self.tracks.last_mut()
+    }
+    pub fn last_track(&self) -> Option<&Track> {
+        self.last_track_info().map(|tk| tk.last_track()).flatten()
+    }
+    pub fn last_track_mut(&mut self) -> Option<&mut Track> {
+        self.last_track_info_mut().map(|tk| tk.last_track_mut()).flatten()
+    }
 }
 impl FromStr for CueSheet {
     type Err = Error;
