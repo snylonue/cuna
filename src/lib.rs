@@ -19,8 +19,6 @@ pub mod track;
 pub mod comment;
 
 use anyhow::Error;
-use std::fs;
-use std::io::Read;
 use std::str::FromStr;
 use crate::track::Track;
 use crate::track::TrackInfo;
@@ -35,7 +33,7 @@ pub struct CueSheet {
 }
 
 impl CueSheet {
-    pub fn new(header: Header, tracks: Vec<TrackInfo>, comments: Comment) -> Self {
+    pub const fn new(header: Header, tracks: Vec<TrackInfo>, comments: Comment) -> Self {
         Self { header, tracks, comments }
     }
     pub fn push_track_info(&mut self, track: TrackInfo) {
