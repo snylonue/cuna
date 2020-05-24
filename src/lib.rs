@@ -22,22 +22,23 @@ use anyhow::Error;
 use std::fs;
 use std::io::Read;
 use std::str::FromStr;
-use crate::track::Tracks;
+use crate::track::Track;
+use crate::track::TrackInfo;
 use crate::header::Header;
 use crate::comment::Comment;
 
 #[derive(Debug, Clone, Default)]
 pub struct CueSheet {
     pub header: Header,
-    pub tracks: Vec<Tracks>,
+    pub tracks: Vec<TrackInfo>,
     pub comments: Comment,
 }
 
 impl CueSheet {
-    pub fn new(header: Header, tracks: Vec<Tracks>, comments: Comment) -> Self {
+    pub fn new(header: Header, tracks: Vec<TrackInfo>, comments: Comment) -> Self {
         Self { header, tracks, comments }
     }
-    pub fn push_tracks(&mut self, track: Tracks) {
+    pub fn push_track_info(&mut self, track: TrackInfo) {
         self.tracks.push(track);
     }
 }

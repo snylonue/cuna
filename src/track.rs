@@ -31,9 +31,9 @@ pub struct Track {
     pub flags: Option<Vec<String>>
 }
 #[derive(Debug, Clone)]
-pub struct Tracks {
+pub struct TrackInfo {
     pub name: String,
-    pub data_type: String,
+    pub format: String,
     pub tracks: Vec<Track>,
 }
 
@@ -99,7 +99,7 @@ fn parse_track_lines<'a, I>(lines: I) -> Result<Track>
     };
     Ok(track)
 }
-pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> Result<Tracks>
+pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> Result<TrackInfo>
     where I: Iterator<Item = &'a str> + Clone
 {
     let mut lines = lines.into_iter();
@@ -112,8 +112,5 @@ pub(crate) fn parse_filetracks_lines<'a, I>(lines: I) -> Result<Tracks>
         .map(IntoIterator::into_iter)
         .map(parse_track_lines)
         .collect::<Result<Vec<_>, _>>()?;
-    Ok(Tracks { name: name.to_owned(), data_type: data_type.to_owned(), tracks })
-}
-pub fn parse_filetracks<S: AsRef<str>>(_s: S) -> Result<Tracks> {
-    unimplemented!()
+    Ok(TrackInfo { name: name.to_owned(), format: data_type.to_owned(), tracks })
 }
