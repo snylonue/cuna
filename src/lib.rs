@@ -1,17 +1,3 @@
-macro_rules! get {
-    ($map: expr, ($($key: ident),*)) => {
-        [$($map.remove(stringify!($key)),)*]
-    };
-    ($map: expr, ($($key: ident),*) >> $map_res: expr) => {
-        [$($map.remove(stringify!($key)).map($map_res),)*]
-    };
-}
-macro_rules! tags {
-    ($($heads: expr),*) => {
-        nom::branch::alt::<_, _, (_, nom::error::ErrorKind), _>(($($crate::utils::keyword($heads),)*))
-    };
-}
-
 pub mod utils;
 pub mod time;
 pub mod header;
@@ -20,7 +6,11 @@ pub mod comment;
 pub mod parser;
 
 use anyhow::Error;
+use anyhow::Result;
 use std::str::FromStr;
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::header::Header;
@@ -36,6 +26,15 @@ pub struct CueSheet {
 impl CueSheet {
     pub const fn new(header: Header, tracks: Vec<TrackInfo>, comments: Comment) -> Self {
         Self { header, tracks, comments }
+    }
+    pub fn from_file(file: &mut File) -> Result<Self> {
+        let mut buf = String::new();
+        file.read_to_string(&mut buf)?;
+        buf.trim_start_matches('﻿').parse() // try to remove UTF-8 BOM header
+    }
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let mut file = File::open(path)?;
+        Self::from_file(&mut file)
     }
     pub fn push_track_info(&mut self, track: TrackInfo) {
         self.tracks.push(track);
@@ -57,21 +56,6 @@ impl FromStr for CueSheet {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (comments, rest) = parse_comments(s);
-        let (headers, files) = utils::scope(rest.lines()).unwrap();
-        let header = header::parse_header_lines(headers)?;
-        let tracks = files.into_iter()
-            .map(|v| v.into_iter())
-            .map(track::parse_filetracks_lines)
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self { header, tracks, comments })
+        parser::Parser::new(s)?.parse()
     }
-}
-fn parse_comments(s: &str) -> (Comment, String) {
-    let comments = Comment::new(s);
-    let s_without_comments = s.lines()
-        .filter(|s| utils::keyword("REM")(s).is_err())
-        .collect::<Vec<&str>>()
-        .join("\n");
-    (comments, s_without_comments)
 }

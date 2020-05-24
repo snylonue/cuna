@@ -31,6 +31,7 @@ pub(crate) fn take_digit2(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
 pub(crate) fn indentation_count(s: &str) -> usize {
     space0::<_, (_, ErrorKind)>(s).map(|(_, o)| o.len()).unwrap()
 }
+#[allow(dead_code)]
 fn find_scopes<'a, I>(line: I, init_indents: usize) -> Vec<usize>
     where I: Iterator<Item = &'a str> + Clone
 {
@@ -49,6 +50,7 @@ fn find_scopes<'a, I>(line: I, init_indents: usize) -> Vec<usize>
 }
 /// Splits a str into two part according to if there's an indentation at a line
 /// Returns a tuple of them in Vecs like `(no_indentation, with_indentation)`
+#[allow(dead_code)]
 pub(crate) fn scope<'a, I>(lines: I) -> Option<(Vec<&'a str>, Vec<Vec<&'a str>>)>
     where I: Iterator<Item = &'a str> + Clone
 {
