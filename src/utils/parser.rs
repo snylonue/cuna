@@ -1,9 +1,12 @@
 use anyhow::Result;
 use std::collections::VecDeque;
 use crate::CueSheet;
+use crate::track::TrackInfo;
+use crate::track::Track;
+use crate::track::Index;
 
 #[derive(Debug, Clone)]
-pub(crate) enum Command<'a> {
+pub enum Command<'a> {
     Rem(&'a str),
     Title(&'a str),
     Performer(&'a str),
@@ -18,28 +21,19 @@ pub(crate) enum Command<'a> {
     Isrc(&'a str),
     Flags(&'a str),
 }
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
-pub(crate) enum State {
-    Global,
-    File,
-    Track,
-}
-#[derive(Debug, Clone)]
-pub(crate) struct Line<'a> {
+pub struct Line<'a> {
     command: Command<'a>,
     indentations: usize,
-    current_line: usize,
+    line: usize,
 }
 #[derive(Debug, Clone)]
-pub(crate) struct Parser<'a> {
-    state: State,
+pub struct Parser<'a> {
     lines: VecDeque<Line<'a>>,
-    current_line: usize,
+    len: usize,
     sheet: CueSheet,
 }
 
-#[allow(dead_code)]
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self> {
         let (content, command) = super::split_space(s)
@@ -107,17 +101,111 @@ impl<'a> Command<'a> {
         }
     }
 }
-#[allow(dead_code)]
 impl<'a> Line<'a> {
-    pub fn new(s: &'a str, current_line: usize) -> Result<Self> {
+    pub fn new(s: &'a str, line: usize) -> Result<Self> {
         let indentations = super::indentation_count(s);
-        let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, current_line + 1))?;
-        Ok( Self { command, indentations, current_line })
+        let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, line + 1))?;
+        Ok( Self { command, indentations, line })
+    }
+    pub fn command(&self) -> &Command {
+        &self.command
+    }
+    pub fn line(&self) -> usize {
+        self.line
+    }
+    pub fn indentations(&self) -> usize {
+        self.indentations
     }
 }
-
-#[allow(unused_mut)]
-#[allow(unused_variables)]
-pub fn parse(s: &str) -> Result<CueSheet> {
-    unimplemented!()
+impl<'a> Parser<'a> {
+    pub fn new(s: &'a str) -> Result<Self> {
+        let lines = s.lines()
+            .enumerate()
+            .map(|(line, content)| Line::new(content, line + 1))
+            .collect::<Result<VecDeque<_>>>()?;
+        let len = lines.len();
+        Ok(Self { lines, len, sheet: CueSheet::default() })
+    }
+    pub fn current_line(&self) -> Option<&Line> {
+        self.lines.front()
+    }
+    pub fn parse_next_line(&mut self) -> Result<()> {
+        let current_line = self.lines.pop_front().unwrap();
+        match *current_line.command() {
+            Command::Rem(s) => self.sheet.comments.push(s.to_owned()),
+            Command::Title(s) => match self.sheet.last_track_mut() {
+                Some(tk) => tk.push_title(s.to_owned()),
+                None => self.sheet.header.push_title(s.to_owned()),
+            },
+            Command::Performer(s) => match self.sheet.last_track_mut() {
+                Some(tk) => tk.push_performer(s.to_owned()),
+                _ => self.sheet.header.push_performer(s.to_owned()),
+            },
+            Command::Songwriter(s) => match self.sheet.last_track_mut() {
+                Some(tk) => tk.push_songwriter(s.to_owned()),
+                _ => self.sheet.header.push_songwriter(s.to_owned()),
+            },
+            Command::Catalog(s) => if self.sheet.header.catalog.is_none() {
+                self.sheet.header.set_catalog(s.parse()?)?;
+            } else {
+                return Err(anyhow::format_err!("Line {}: `CATALOG {}`: multiple `CATALOG` commands is not allowed", current_line.line(), s));
+            }
+            Command::Cdtextfile(s) => {
+                self.sheet.header.set_cdtextfile(s.to_owned());
+            },
+            Command::File(name, format) => {
+                self.sheet.push_track_info(TrackInfo::new(name.to_owned(), format.to_owned()));
+            },
+            Command::Track(id, format) => {
+                match self.sheet.last_track_info_mut() {
+                    Some(tk) => tk.push_track(Track::new(id.parse()?, format.to_owned())?),
+                    None => anyhow::bail!("Multiple `CATALOG` commands is not allowed"),
+                }
+            },
+            Command::Index(id, duration) => match self.sheet.last_track_mut() {
+                Some(tk) if tk.postgap.is_none() => {
+                    tk.push_index(Index::new(id.parse()?, duration.parse()?)?)
+                },
+                Some(_) => anyhow::bail!("Command `INDEX` should be before `POSTGAP`"),
+                None => anyhow::bail!("`Index {} {}`: Unexpected command", id, duration),
+            }
+            Command::Pregap(duration) => match self.sheet.last_track_mut() {
+                Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
+                    tk.set_pregep(duration.parse()?);
+                },
+                Some(tk) if !tk.index.is_empty() => anyhow::bail!("Command `PREGAP` should be before `INDEX`"),
+                Some(tk) if tk.pregap.is_some() => anyhow::bail!("Multiple `PREGAP` commands are not allowed in one `TRACK` scope"),
+                _ => anyhow::bail!("`PREGAP {}`: Unexpected command", duration),
+            },
+            Command::Postgap(duration) => match self.sheet.last_track_mut() {
+                Some(tk) if tk.postgap.is_none() => {
+                    tk.set_postgep(duration.parse()?);
+                },
+                Some(_) => anyhow::bail!("Multiple `POSTGAP` commands are not allowed in one `TRACK` scope"),
+                None => anyhow::bail!("`POSTGAP {}`: Unexpected command", duration),
+            },
+            Command::Isrc(s) => match self.sheet.last_track_mut() {
+                Some(tk) if tk.isrc.is_none() => {
+                    tk.set_isrc(s.to_owned());
+                },
+                Some(_) => anyhow::bail!("Multiple `ISRC` commands are not allowed in one `TRACK` scope"),
+                None => anyhow::bail!("`ISRC {}`: Unexpected command", s),
+            },
+            Command::Flags(s) => match self.sheet.last_track_mut() {
+                Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
+                Some(_) => anyhow::bail!("Multiple `FLAGS` commands are not allowed in one `TRACK` scope"),
+                None => anyhow::bail!("`FLAGS {}`: Unexpected command", s),
+            }
+        }
+        Ok(())
+    }
+    pub fn parse(mut self) -> Result<CueSheet> {
+        while !self.lines.is_empty() {
+            match self.parse_next_line() {
+                Ok(_) => {},
+                Err(e) => anyhow::bail!("Error at line {}: {}", self.current_line().map(|l| l.line - 1).unwrap_or(self.len), e),
+            }
+        }
+        Ok(self.sheet)
+    }
 }
