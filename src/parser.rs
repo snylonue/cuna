@@ -66,41 +66,6 @@ impl<'a> Command<'a> {
             _ => Err(anyhow::anyhow!("UnKnown command `{}`", command)),
         }
     }
-    pub fn may_in_global_scope(&self) -> bool {
-        match *self {
-            Self::Rem(_) => true,
-            Self::Title(_) => true,
-            Self::Performer(_) => true,
-            Self::Songwriter(_) => true,
-            Self::Catalog(_) => true,
-            Self::Cdtextfile(_) => true,
-            Self::File(..) => true,
-            _ => false,
-        }
-    }
-    pub fn may_in_file_scope(&self) -> bool {
-        match *self {
-            Self::Rem(_) => true,
-            Self::Track(..) => true,
-            _ => false,
-        }
-    }
-    pub fn may_in_track_scope(&self) -> bool {
-        match *self {
-            Self::Rem(_) => true,
-            Self::Title(_) => true,
-            Self::Performer(_) => true,
-            Self::Songwriter(_) => true,
-            Self::Catalog(_) => true,
-            Self::Cdtextfile(_) => true,
-            Self::Index(..) => true,
-            Self::Pregap(_) => true,
-            Self::Postgap(_) => true,
-            Self::Isrc(_) => true,
-            Self::Flags(_) => true,
-            _ => false,
-        }
-    }
 }
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, line: usize) -> Result<Self> {
