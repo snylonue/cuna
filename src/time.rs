@@ -49,16 +49,18 @@ impl Duration {
     pub fn set_minutes(&mut self, minutes: u32) {
         self.seconds = self.seconds() + minutes * 60;
     }
+    /// # Panics
+    ///
+    /// Panics if seconds >= 60
     pub fn set_seconds(&mut self, seconds: u32) {
-        if seconds >= 60 {
-            panic!("Invaild seconds {}", seconds);
-        }
+        assert!(seconds < 60);
         self.seconds = self.minutes() * 60 + seconds;
     }
+    /// # Panics
+    ///
+    /// Panics if frames >= 75
     pub fn set_frames(&mut self, frames: u32) {
-        if frames >= 75 {
-            panic!("Invaild frames {}", frames);
-        }
+        assert!(frames < 75);
         self.frames = frames as u8;
     }
 }
