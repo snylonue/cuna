@@ -31,7 +31,6 @@ pub struct Line<'a> {
 #[derive(Debug, Clone)]
 pub struct Parser<'a> {
     lines: VecDeque<Line<'a>>,
-    len: usize,
     sheet: CueSheet,
 }
 
@@ -70,7 +69,7 @@ impl<'a> Command<'a> {
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, line: usize) -> Result<Self> {
         let indentations = utils::indentation_count(s);
-        let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, line + 1))?;
+        let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, line))?;
         Ok( Self { command, indentations, line })
     }
     pub fn command(&self) -> &Command {
@@ -89,8 +88,7 @@ impl<'a> Parser<'a> {
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
             .collect::<Result<VecDeque<_>>>()?;
-        let len = lines.len();
-        Ok(Self { lines, len, sheet: CueSheet::default() })
+        Ok(Self { lines, sheet: CueSheet::default() })
     }
     pub fn current_line(&self) -> Option<&Line> {
         self.lines.front()
@@ -169,10 +167,11 @@ impl<'a> Parser<'a> {
         Ok(current_line)
     }
     pub fn parse(mut self) -> Result<CueSheet> {
+        let mut current_line = 0;
         while !self.lines.is_empty() {
             match self.parse_next_line() {
-                Ok(_) => {},
-                Err(e) => anyhow::bail!("Error at line {}: {}", self.current_line().map(|l| l.line - 1).unwrap_or(self.len), e),
+                Ok(cl) => current_line = cl.line,
+                Err(e) => anyhow::bail!("Error at line {}: {}", current_line + 1, e),
             }
         }
         Ok(self.sheet)
