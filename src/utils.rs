@@ -8,7 +8,6 @@ use nom::sequence::terminated;
 use nom::character::complete::space0;
 use nom::branch::alt;
 use nom::combinator::rest;
-use std::mem;
 
 pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     move |i: &str| terminated(tag(kd), tag(" "))(i)
