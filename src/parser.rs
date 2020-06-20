@@ -95,8 +95,11 @@ impl<'a> Parser<'a> {
     pub fn current_line(&self) -> Option<&Line> {
         self.lines.front()
     }
-    pub fn parse_next_line(&mut self) -> Result<()> {
-        let current_line = self.lines.pop_front().unwrap();
+    pub fn parse_next_line(&mut self) -> Result<Line<'_>> {
+        let current_line = match self.lines.pop_front() {
+            Some(cl) => cl,
+            None => anyhow::bail!("Nothing to parse"),
+        };
         match *current_line.command() {
             Command::Rem(s) => self.sheet.comments.push(s.to_owned()),
             Command::Title(s) => match self.sheet.last_track_mut() {
@@ -163,7 +166,7 @@ impl<'a> Parser<'a> {
                 None => anyhow::bail!("`FLAGS {}`: Unexpected command", s),
             }
         }
-        Ok(())
+        Ok(current_line)
     }
     pub fn parse(mut self) -> Result<CueSheet> {
         while !self.lines.is_empty() {
