@@ -18,10 +18,20 @@ pub fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &
     keyword(kd)(content)
 }
 pub fn quote(content: &str) -> IResult<&str, &str>  {
-    delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(content)
+    delimited(
+        tag(r#"""#),
+        take_until(r#"""#),
+        tag(r#"""#)
+    )(content)
 }
 pub fn quote_opt(content: &str) -> IResult<&str, &str> {
-    alt((quote, rest))(content)
+    verify(
+        alt((
+            quote,
+            rest
+        )),
+        |s: &str| !s.contains('"')
+    )(content)
 }
 pub fn split_space(content: &str) -> IResult<&str, &str> {
     terminated(take_until(" "), tag(" "))(content)
