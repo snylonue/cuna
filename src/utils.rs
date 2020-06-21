@@ -1,6 +1,7 @@
 use nom::IResult;
 use nom::error::ErrorKind;
-use nom::bytes::complete::tag_no_case as tag;
+use nom::bytes::complete::tag;
+use nom::bytes::complete::tag_no_case;
 use nom::bytes::complete::take_until;
 use nom::bytes::complete::take_while;
 use nom::sequence::delimited;
@@ -11,7 +12,7 @@ use nom::combinator::rest;
 use nom::combinator::verify;
 
 pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
-    move |i: &str| terminated(tag(kd), tag(" "))(i)
+    move |i: &str| terminated(tag_no_case(kd), tag(" "))(i)
 }
 pub fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &'a str> {
     keyword(kd)(content)

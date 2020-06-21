@@ -1,7 +1,7 @@
 use anyhow::Error;
 use anyhow::Result;
 use nom::sequence::tuple;
-use nom::sequence::preceded;
+use nom::sequence::delimited;
 use nom::bytes::complete::tag_no_case as tag;
 use nom::combinator::rest;
 use std::str::FromStr;
@@ -46,7 +46,10 @@ impl FromStr for Index {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (_, (id, duration)) = tuple((preceded(tag("INDEX "), utils::take_digit2), preceded(tag(" "), rest)))(s)
+        let (_, (id, duration)) = tuple((
+            delimited(utils::keyword("INDEX"), utils::take_digit2, tag(" ")),
+            rest
+        ))(s)
             .map_err(|_| anyhow::anyhow!("error"))?;
         Ok(Self { id: id.parse()?, begin_time: duration.parse()? })
     }
