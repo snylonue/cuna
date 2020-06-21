@@ -18,6 +18,7 @@ mod time {
         assert_eq!("61:29:73".parse::<Duration>().unwrap(), Duration::new(61, 29, 73));
         assert!("xd".parse::<Duration>().is_err());
         assert!("6:772:11".parse::<Duration>().is_err());
+        assert!("6:72:111".parse::<Duration>().is_err());
     }
     #[test]
     fn modify() {
