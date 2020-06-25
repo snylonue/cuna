@@ -5,8 +5,6 @@ use crate::error::ParseError;
 use crate::error::Error;
 use crate::CueSheet;
 use crate::track::TrackInfo;
-use crate::track::Track;
-use crate::track::Index;
 use crate::utils;
 
 #[derive(Debug, Clone)]
@@ -124,12 +122,13 @@ impl<'a> Parser<'a> {
     pub fn current_line(&self) -> Option<&Line> {
         self.lines.front()
     }
-    pub fn parse_next_line(&mut self) -> Result<Line<'_>> {
+    pub fn parse_next_line(&mut self) -> Result<Line<'_>, ParseError> {
         let current_line = match self.lines.pop_front() {
             Some(cl) => cl,
-            None => anyhow::bail!("Nothing to parse"),
+            None => return Err(ParseError::Empty),
         };
-        match *current_line.command() {
+        let command = current_line.command();
+        match *command {
             Command::Rem(s) => self.sheet.comments.push(s.to_owned()),
             Command::Title(s) => match self.sheet.last_track_mut() {
                 Some(tk) => tk.push_title(s.to_owned()),
@@ -146,7 +145,7 @@ impl<'a> Parser<'a> {
             Command::Catalog(s) => if self.sheet.header.catalog.is_none() {
                 self.sheet.header.set_catalog(s.parse()?)?;
             } else {
-                return Err(anyhow::format_err!("Line {}: `CATALOG {}`: multiple `CATALOG` commands is not allowed", current_line.line(), s));
+                return Err(ParseError::syntax_error(command, "multiple `CATALOG` commands is not allowed"));
             }
             Command::Cdtextfile(s) => {
                 self.sheet.header.set_cdtextfile(s.to_owned());
@@ -154,55 +153,58 @@ impl<'a> Parser<'a> {
             Command::File(name, format) => {
                 self.sheet.push_track_info(TrackInfo::new(name.to_owned(), format.to_owned()));
             },
-            Command::Track(id, format) => {
+            Command::Track(..) => {
                 match self.sheet.last_track_info_mut() {
-                    Some(tk) => tk.push_track(Track::new(id.parse()?, format.to_owned())?),
-                    None => anyhow::bail!("Multiple `CATALOG` commands is not allowed"),
+                    Some(tk) => tk.push_track(command.to_string().parse()?),
+                    None => return Err(ParseError::syntax_error(command, "Multiple `CATALOG` commands is not allowed")),
                 }
             },
-            Command::Index(id, duration) => match self.sheet.last_track_mut() {
+            Command::Index(..) => match self.sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
-                    tk.push_index(Index::new(id.parse()?, duration.parse()?)?)
+                    tk.push_index(command.to_string().parse()?)
                 },
-                Some(_) => anyhow::bail!("Command `INDEX` should be before `POSTGAP`"),
-                None => anyhow::bail!("`Index {} {}`: Unexpected command", id, duration),
+                Some(_) => return Err(ParseError::syntax_error(command, "Command `INDEX` should be before `POSTGAP`")),
+                None => return Err(ParseError::unexpected_token("INDEX")),
             }
             Command::Pregap(duration) => match self.sheet.last_track_mut() {
                 Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
                     tk.set_pregep(duration.parse()?);
                 },
-                Some(tk) if !tk.index.is_empty() => anyhow::bail!("Command `PREGAP` should be before `INDEX`"),
-                Some(tk) if tk.pregap.is_some() => anyhow::bail!("Multiple `PREGAP` commands are not allowed in one `TRACK` scope"),
-                _ => anyhow::bail!("`PREGAP {}`: Unexpected command", duration),
+                Some(tk) if !tk.index.is_empty() => return Err(ParseError::syntax_error(command, "Command `PREGAP` should be before `INDEX`")),
+                Some(tk) if tk.pregap.is_some() => return Err(ParseError::syntax_error(command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope")),
+                _ => return Err(ParseError::unexpected_token("PREGAP")),
             },
             Command::Postgap(duration) => match self.sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
                     tk.set_postgep(duration.parse()?);
                 },
-                Some(_) => anyhow::bail!("Multiple `POSTGAP` commands are not allowed in one `TRACK` scope"),
-                None => anyhow::bail!("`POSTGAP {}`: Unexpected command", duration),
+                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope")),
+                None => return Err(ParseError::unexpected_token("POSTGAP")),
             },
             Command::Isrc(s) => match self.sheet.last_track_mut() {
                 Some(tk) if tk.isrc.is_none() => {
                     tk.set_isrc(s.to_owned());
                 },
-                Some(_) => anyhow::bail!("Multiple `ISRC` commands are not allowed in one `TRACK` scope"),
-                None => anyhow::bail!("`ISRC {}`: Unexpected command", s),
+                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `ISRC` commands are not allowed in one `TRACK` scope")),
+                None => return Err(ParseError::unexpected_token("ISRC")),
             },
             Command::Flags(s) => match self.sheet.last_track_mut() {
                 Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
-                Some(_) => anyhow::bail!("Multiple `FLAGS` commands are not allowed in one `TRACK` scope"),
-                None => anyhow::bail!("`FLAGS {}`: Unexpected command", s),
+                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope")),
+                None => return Err(ParseError::unexpected_token("FLAGS")),
             }
         }
         Ok(current_line)
     }
-    pub fn parse(mut self) -> Result<CueSheet> {
+    pub fn parse(mut self) -> Result<CueSheet, Error> {
         let mut current_line = 0;
-        while !self.lines.is_empty() {
+        loop {
             match self.parse_next_line() {
                 Ok(cl) => current_line = cl.line,
-                Err(e) => anyhow::bail!("Error at line {}: {}", current_line + 1, e),
+                Err(e) => match e {
+                    ParseError::Empty => break,
+                    _ => return Err(Error::new(e, current_line)),
+                }
             }
         }
         Ok(self.sheet)
