@@ -1,4 +1,3 @@
-use anyhow::Result;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::sequence::terminated;

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use nom::sequence::tuple;
 use nom::sequence::delimited;
 use nom::bytes::complete::tag_no_case as tag;
@@ -65,11 +64,11 @@ impl Track {
     fn new_unchecked(id: u8, format: String) -> Self {
         Self { id, format, ..Self::default() }
     }
-    pub fn new(id: u8, format: String) -> Result<Self> {
+    pub fn new(id: u8, format: String) -> Result<Self, ParseError> {
         if id <= 99 {
             Ok(Self::new_unchecked(id, format))
         } else {
-            Err(anyhow::format_err!("track-id must be between 1 and 99"))
+            Err(ParseError::err_msg("track-id must be between 1 and 99"))
         }
     }
     pub fn push_title(&mut self, title: String) {

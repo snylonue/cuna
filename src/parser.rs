@@ -1,4 +1,3 @@
-use anyhow::Result;
 use std::collections::VecDeque;
 use std::fmt;
 use crate::error::ParseError;

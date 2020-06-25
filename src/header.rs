@@ -1,4 +1,3 @@
-use anyhow::Result;
 use crate::error::ParseError;
 
 #[derive(Debug, Clone, Default)]
