@@ -36,16 +36,18 @@ pub struct Parser<'a> {
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
-        let s = s.trim();
-        let (content, command) = utils::token(s).map_err(
-            |_| ParseError::syntax_error(s, "missing arguments")
-        )?;
-        let (rest, content) = utils::quote_opt(content.trim()).map_err(
-            |e| match e {
-                nom::Err::Error((es, _)) => ParseError::syntax_error(es, "invaild string"),
-                nom::Err::Failure((_, ek)) => ParseError::ParserError(ek),
+        let (content, command) = match utils::token(s) {
+            Ok(ok) => ok,
+            Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
+        };
+        let (rest, content) = match utils::quote_opt(content.trim()) {
+            Ok(ok) => ok,
+            Err(e) => match e {
+                nom::Err::Error((es, _)) => return Err(ParseError::syntax_error(es, "invaild string")),
+                nom::Err::Failure((_, ek)) => return Err(ParseError::ParserError(ek)),
                 nom::Err::Incomplete(_) => unreachable!(),
-        })?;
+            }
+        };
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
             "title" => Ok(Self::Title(content)),
@@ -87,7 +89,7 @@ impl<'a> fmt::Display for Command<'a> {
             Command::Pregap(c) => format!("PREGAP {}", c),
             Command::Postgap(c) => format!("POSTGAP {}", c),
             Command::Isrc(c) => format!("ISRC {}", c),
-            Command::Flags(c) => format!("FLAGS {}", c),
+            Command::Flags(c) => format!("FLAG {}", c),
         };
         write!(formatter, "{}", command)
      }
@@ -113,10 +115,11 @@ impl<'a> Line<'a> {
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Result<Self, Error> {
         let lines = s.lines()
-            .filter(|s| !s.trim().is_empty())
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
-            .collect::<Result<VecDeque<_>, Error>>()?;
+            .collect::<Result<_, _>>()?;
         Ok(Self { lines, sheet: CueSheet::default() })
     }
     pub fn current_line(&self) -> Option<&Line> {
@@ -200,10 +203,10 @@ impl<'a> Parser<'a> {
         let mut current_line = 0;
         loop {
             match self.parse_next_line() {
-                Ok(cl) => current_line = cl.line,
+                Ok(cl) => current_line = cl.line(),
                 Err(e) => match e {
                     ParseError::Empty => break,
-                    _ => return Err(Error::new(e, current_line)),
+                    _ => return Err(Error::new(e, current_line + 1)),
                 }
             }
         }
