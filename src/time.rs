@@ -1,14 +1,13 @@
-use anyhow::Error;
 use anyhow::Result;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::sequence::terminated;
 use nom::sequence::tuple;
-use nom::error::ErrorKind;
-use nom::Err as NomErr;
+use nom::combinator::map;
 use std::str::FromStr;
 use std::fmt;
-use crate::utils::take_digit2;
+use crate::utils::number;
+use crate::error::ParseError;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Duration {
@@ -65,16 +64,17 @@ impl Duration {
     }
 }
 impl FromStr for Duration {
-    type Err = Error;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let err_msg = |_: NomErr<(_, ErrorKind)>| anyhow::anyhow!("Invaild time");
+        let err_msg = |_| ParseError::syntax_error(s, "invaild duration");
         let (_, (minutes, seconds, frames)) = tuple((
-            terminated(digit1, tag(":")),
-            terminated(take_digit2, tag(":")), 
-            take_digit2
+            terminated(map(digit1, |d: &str| d.parse().unwrap()), tag(":")),
+            terminated(number(2), tag(":")), 
+            number(2)
         ))(s).map_err(err_msg)?;
-        Ok(Self::from_msf_force(minutes.parse()?, seconds.parse()?, frames.parse()?))
+        // minutes, seconds and frames are confirmed to be vaild u8 value
+        Ok(Self::new(minutes, seconds as u32, frames as u32))
     }
 }
 impl fmt::Display for Duration {
