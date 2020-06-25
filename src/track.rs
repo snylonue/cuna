@@ -103,6 +103,14 @@ impl Track {
         self.flags.get_or_insert_with(|| Vec::new()).extend(flags.into_iter().map(Into::into))
     }
 }
+impl FromStr for Track {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (tp, id) = delimited(utils::keyword("TRACK"), utils::number(2), tag(" "))(s)?;
+        Ok(Self::new_unchecked(id, tp.to_owned()))
+    }
+}
 impl TrackInfo {
     pub const fn new(name: String, format: String) -> Self {
         Self::with_tracks(name, format, Vec::new())
