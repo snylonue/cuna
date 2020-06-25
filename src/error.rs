@@ -23,10 +23,10 @@ pub struct Error {
 }
 
 impl ParseError {
-    pub fn syntax_error<S1: AsRef<str>, S2: AsRef<str>>(content: S1, description: S2) -> Self {
-        Self::SyntaxError(format!("{} : {}", content.as_ref(), description.as_ref()))
+    pub fn syntax_error<S1: fmt::Display, S2: fmt::Display>(content: S1, description: S2) -> Self {
+        Self::SyntaxError(format!("{} : {}", content, description))
     }
-    pub fn unexpected_token<S: AsRef<str>>(msg: S) -> Self {
+    pub fn unexpected_token<S: fmt::Display>(msg: S) -> Self {
         Self::syntax_error(msg, "unexpected token")
     }
     pub fn from_error_kind(ek: ErrorKind) -> Self {
