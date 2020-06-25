@@ -10,6 +10,7 @@ use nom::character::complete::space0;
 use nom::branch::alt;
 use nom::combinator::rest;
 use nom::combinator::verify;
+use nom::combinator::map_res;
 
 pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     move |i: &str| terminated(tag_no_case(kd), tag(" "))(i)
@@ -23,7 +24,7 @@ pub fn quote(content: &str) -> IResult<&str, &str>  {
 pub fn quote_opt(content: &str) -> IResult<&str, &str> {
     alt((quote, rest))(content)
 }
-pub fn split_space(content: &str) -> IResult<&str, &str> {
+pub fn token(content: &str) -> IResult<&str, &str> {
     terminated(take_until(" "), tag(" "))(content)
 }
 pub(crate) fn take_digit2(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
@@ -31,6 +32,9 @@ pub(crate) fn take_digit2(s: &str) -> IResult<&str, &str, (&str, ErrorKind)> {
         take_while(|c: char| c.is_digit(10)),
         |d: &str| d.len() == 2,
     )(s)
+}
+pub fn number2(s: &str) -> IResult<&str, u8> {
+    map_res(take_digit2, |d| d.parse())(s)
 }
 pub(crate) fn indentation_count(s: &str) -> usize {
     space0::<_, (_, ErrorKind)>(s).map(|(_, o)| o.len()).unwrap()

@@ -36,7 +36,7 @@ pub struct Parser<'a> {
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self> {
-        let (content, command) = utils::split_space(s)
+        let (content, command) = utils::token(s).map_err(
             .map_err(|_| anyhow::anyhow!("Invaild command {}", s))?;
         let (rest, content) = utils::quote_opt(content.trim())
             .map_err(|_| anyhow::anyhow!("Invaild command {} {}", content, command))?;
@@ -49,12 +49,12 @@ impl<'a> Command<'a> {
             "cdtextfile" => Ok(Self::Cdtextfile(content)),
             "file" => Ok(Self::File(rest, content)),
             "track" => {
-                let (format, id) = utils::split_space(content)
+                let (format, id) = utils::token(content)
                     .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
                 Ok(Self::Track(id, format))
             },
             "index" => {
-                let (duration, id) = utils::split_space(content)
+                let (duration, id) = utils::token(content)
                     .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
                 Ok(Self::Index(id, duration))
             },
