@@ -113,6 +113,7 @@ impl<'a> Line<'a> {
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Result<Self, Error> {
         let lines = s.lines()
+            .filter(|s| !s.trim().is_empty())
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
             .collect::<Result<VecDeque<_>, Error>>()?;
