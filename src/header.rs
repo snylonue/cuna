@@ -1,4 +1,5 @@
 use anyhow::Result;
+use crate::error::ParseError;
 
 #[derive(Debug, Clone, Default)]
 pub struct Header {
@@ -19,11 +20,11 @@ impl Header {
     pub fn push_songwriter(&mut self, songwriter: String) {
         self.songwriter.get_or_insert_with(|| Vec::with_capacity(1)).push(songwriter)
     }
-    pub fn set_catalog(&mut self, catalog: u64) -> Result<Option<u64>>{
+    pub fn set_catalog(&mut self, catalog: u64) -> Result<Option<u64>, ParseError>{
         if len(catalog) == 13 {
             Ok(self.catalog.replace(catalog))
         } else {
-            Err(anyhow::format_err!("Invaild catalog"))
+            Err(ParseError::syntax_error(catalog, "invaild catalog"))
         }
     }
     pub fn set_cdtextfile(&mut self, cdtextfile: String) -> Option<String> {
