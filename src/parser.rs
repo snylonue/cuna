@@ -1,5 +1,6 @@
 use anyhow::Result;
 use std::collections::VecDeque;
+use crate::error::ParseError;
 use crate::CueSheet;
 use crate::track::TrackInfo;
 use crate::track::Track;
@@ -35,11 +36,17 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Command<'a> {
-    pub fn new(s: &'a str) -> Result<Self> {
+    pub fn new(s: &'a str) -> Result<Self, ParseError> {
+        let s = s.trim();
         let (content, command) = utils::token(s).map_err(
-            .map_err(|_| anyhow::anyhow!("Invaild command {}", s))?;
-        let (rest, content) = utils::quote_opt(content.trim())
-            .map_err(|_| anyhow::anyhow!("Invaild command {} {}", content, command))?;
+            |_| ParseError::syntax_error(s, "missing arguments")
+        )?;
+        let (rest, content) = utils::quote_opt(content.trim()).map_err(
+            |e| match e {
+                nom::Err::Error((es, _)) => ParseError::syntax_error(es, "invaild string"),
+                nom::Err::Failure((_, ek)) => ParseError::ParserError(ek),
+                nom::Err::Incomplete(_) => unreachable!(),
+        })?;
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
             "title" => Ok(Self::Title(content)),
@@ -47,22 +54,22 @@ impl<'a> Command<'a> {
             "songwriter" => Ok(Self::Songwriter(content)),
             "catalog" => Ok(Self::Catalog(content)),
             "cdtextfile" => Ok(Self::Cdtextfile(content)),
-            "file" => Ok(Self::File(rest, content)),
+            "file" => Ok(Self::File(content, rest.trim())),
             "track" => {
                 let (format, id) = utils::token(content)
-                    .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
+                    .map_err(|_| ParseError::syntax_error(command, "missing arguments"))?;
                 Ok(Self::Track(id, format))
             },
             "index" => {
                 let (duration, id) = utils::token(content)
-                    .map_err(|_| anyhow::anyhow!("Invaild command {}", content))?;
+                    .map_err(|_| ParseError::syntax_error(command, "missing arguments"))?;
                 Ok(Self::Index(id, duration))
             },
             "pregap" => Ok(Self::Pregap(content)),
             "postgap" => Ok(Self::Postgap(content)),
             "isrc" => Ok(Self::Isrc(content)),
             "flag" => Ok(Self::Flags(content)),
-            _ => Err(anyhow::anyhow!("UnKnown command `{}`", command)),
+            _ => Err(ParseError::unexpected_token(command)),
         }
     }
 }
