@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::collections::VecDeque;
 use std::fmt;
 use crate::error::ParseError;
+use crate::error::Error;
 use crate::CueSheet;
 use crate::track::TrackInfo;
 use crate::track::Track;
@@ -95,9 +96,11 @@ impl<'a> fmt::Display for Command<'a> {
      }
 }
 impl<'a> Line<'a> {
-    pub fn new(s: &'a str, line: usize) -> Result<Self> {
+    pub fn new(s: &'a str, line: usize) -> Result<Self, Error> {
         let indentations = utils::indentation_count(s);
-        let command = Command::new(&s.trim()).map_err(|e| anyhow::anyhow!("{} at line {}", e, line))?;
+        let command = Command::new(&s.trim()).map_err(
+            |e| Error::new(e, line)
+        )?;
         Ok( Self { command, indentations, line })
     }
     pub fn command(&self) -> &Command {
@@ -111,11 +114,11 @@ impl<'a> Line<'a> {
     }
 }
 impl<'a> Parser<'a> {
-    pub fn new(s: &'a str) -> Result<Self> {
+    pub fn new(s: &'a str) -> Result<Self, Error> {
         let lines = s.lines()
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
-            .collect::<Result<VecDeque<_>>>()?;
+            .collect::<Result<VecDeque<_>, Error>>()?;
         Ok(Self { lines, sheet: CueSheet::default() })
     }
     pub fn current_line(&self) -> Option<&Line> {
