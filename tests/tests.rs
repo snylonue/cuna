@@ -37,3 +37,18 @@ mod time {
         duration.set_frames(88);
     }
 }
+#[cfg(test)]
+mod command {
+    use cuna::parser::Command;
+
+    #[test]
+    fn display() {
+        let cmds = r#"REM COMMENT ExactAudioCopy v0.99pb5
+        PERFORMER "Supercell"
+        TITLE "My Dearest"
+        FILE "Supercell - My Dearest.flac" WAVE"#;
+        for (cmd, ori) in cmds.lines().map(Command::new).zip(cmds.lines()) {
+            assert_eq!(format!("{}", cmd.unwrap()), ori.trim().to_string())
+        }
+    }
+}

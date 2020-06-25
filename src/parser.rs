@@ -1,5 +1,6 @@
 use anyhow::Result;
 use std::collections::VecDeque;
+use std::fmt;
 use crate::error::ParseError;
 use crate::CueSheet;
 use crate::track::TrackInfo;
@@ -72,6 +73,26 @@ impl<'a> Command<'a> {
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
+}
+impl<'a> fmt::Display for Command<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 
+        let command = match *self {
+            Command::Rem(c) => format!("REM {}", c),
+            Command::Title(c) => format!(r#"TITLE "{}""#, c),
+            Command::Performer(c) => format!(r#"PERFORMER "{}""#, c),
+            Command::Songwriter(c) => format!(r#"SONGWRITER "{}""#, c),
+            Command::Catalog(c) => format!("CATALOG {}", c),
+            Command::Cdtextfile(c) => format!(r#"CDTEXTFILE "{}""#, c),
+            Command::File(name, tp) => format!(r#"FILE "{}" {}"#, name, tp),
+            Command::Track(id, format) => format!("TRACK {} {}", id, format),
+            Command::Index(id, duration) => format!("INDEX {} {}", id, duration),
+            Command::Pregap(c) => format!("PREGAP {}", c),
+            Command::Postgap(c) => format!("POSTGAP {}", c),
+            Command::Isrc(c) => format!("ISRC {}", c),
+            Command::Flags(c) => format!("FLAGS {}", c),
+        };
+        write!(formatter, "{}", command)
+     }
 }
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, line: usize) -> Result<Self> {
