@@ -35,7 +35,7 @@ pub struct TrackInfo {
 }
 
 impl Index {
-    fn new_unchecked(id: u8, begin_time: Duration) -> Self {
+    pub(crate) fn new_unchecked(id: u8, begin_time: Duration) -> Self {
         Self { id, begin_time }
     }
     pub fn new(id: u8, begin_time: Duration) -> Self {
@@ -64,7 +64,7 @@ impl FromStr for Index {
     }
 }
 impl Track {
-    fn new_unchecked(id: u8, format: String) -> Self {
+    pub(crate) fn new_unchecked(id: u8, format: String) -> Self {
         Self { id, format, ..Self::default() }
     }
     pub fn new(id: u8, format: String) -> Self {

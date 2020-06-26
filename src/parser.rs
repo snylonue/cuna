@@ -3,6 +3,8 @@ use std::fmt;
 use crate::error::ParseError;
 use crate::error::Error;
 use crate::CueSheet;
+use crate::track::Track;
+use crate::track::Index;
 use crate::track::TrackInfo;
 use crate::utils;
 
@@ -151,15 +153,15 @@ impl<'a> Parser<'a> {
             Command::File(name, format) => {
                 self.sheet.push_track_info(TrackInfo::new(name.to_owned(), format.to_owned()));
             },
-            Command::Track(..) => {
+            Command::Track(id, format) => {
                 match self.sheet.last_track_info_mut() {
-                    Some(tk) => tk.push_track(command.to_string().parse()?),
+                    Some(tk) => tk.push_track(Track::new_unchecked(utils::number(2)(id)?.1, format.to_owned())),
                     None => return Err(ParseError::syntax_error(command, "Multiple `CATALOG` commands is not allowed")),
                 }
             },
-            Command::Index(..) => match self.sheet.last_track_mut() {
+            Command::Index(id, duration) => match self.sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
-                    tk.push_index(command.to_string().parse()?)
+                    tk.push_index(Index::new_unchecked(utils::number(2)(id)?.1, duration.parse()?))
                 },
                 Some(_) => return Err(ParseError::syntax_error(command, "Command `INDEX` should be before `POSTGAP`")),
                 None => return Err(ParseError::unexpected_token("INDEX")),
