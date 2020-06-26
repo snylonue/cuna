@@ -32,5 +32,5 @@ impl Header {
 }
 
 fn len(d: u64) -> usize {
-    d.to_string().len()
+    (d as f32).log10() as usize + 1
 }
