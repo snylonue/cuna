@@ -11,12 +11,12 @@ use crate::error::ParseError;
 
 #[derive(Debug, Clone)]
 pub struct Index {
-    pub id: u8, // index id must between 1 and 99, this filed should be private
+    pub(crate) id: u8, // index id must between 1 and 99
     pub begin_time: Duration,
 }
 #[derive(Debug, Clone, Default)]
 pub struct Track {
-    pub id: u8, // track-id must between 1 and 99
+    pub(crate) id: u8, // track-id must between 1 and 99
     pub format: String,
     pub index: Vec<Index>,
     pub pregap: Option<Duration>,
@@ -38,11 +38,14 @@ impl Index {
     fn new_unchecked(id: u8, begin_time: Duration) -> Self {
         Self { id, begin_time }
     }
-    pub fn new(id: u8, begin_time: Duration) -> Result<Self, ParseError> {
+    pub fn new(id: u8, begin_time: Duration) -> Self {
+        Self::new_opt(id, begin_time).expect("index-id must be between 1 and 99")
+    }
+    pub fn new_opt(id: u8, begin_time: Duration) -> Option<Self> {
         if id <= 99 {
-            Ok(Self { id, begin_time })
+            Some(Self::new_unchecked(id, begin_time))
         } else {
-            Err(ParseError::syntax_error(id.to_string(), "index-id must be between 1 and 99"))
+            None
         }
     }
 }
@@ -64,11 +67,14 @@ impl Track {
     fn new_unchecked(id: u8, format: String) -> Self {
         Self { id, format, ..Self::default() }
     }
-    pub fn new(id: u8, format: String) -> Result<Self, ParseError> {
+    pub fn new(id: u8, format: String) -> Self {
+        Self::new_opt(id, format).expect("track-id must be between 1 and 99")
+    }
+    pub fn new_opt(id: u8, format: String) -> Option<Self> {
         if id <= 99 {
-            Ok(Self::new_unchecked(id, format))
+            Some(Self::new_unchecked(id, format))
         } else {
-            Err(ParseError::err_msg("track-id must be between 1 and 99"))
+            None
         }
     }
     pub fn push_title(&mut self, title: String) {
