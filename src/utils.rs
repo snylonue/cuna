@@ -24,13 +24,7 @@ pub fn quote(content: &str) -> IResult<&str, &str>  {
     )(content)
 }
 pub fn quote_opt(content: &str) -> IResult<&str, &str> {
-    verify(
-        alt((
-            quote,
-            rest
-        )),
-        |s: &str| !s.contains('"')
-    )(content)
+    alt((quote, rest))(content)
 }
 pub fn token(content: &str) -> IResult<&str, &str> {
     terminated(take_until(" "), tag(" "))(content)
