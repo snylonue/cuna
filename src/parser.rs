@@ -108,6 +108,76 @@ impl<'a> Line<'a> {
     pub fn line(&self) -> usize {
         self.line
     }
+    pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), ParseError> {
+        let command = self.command();
+        match *command {
+            Command::Rem(s) => sheet.comments.push(s.to_owned()),
+            Command::Title(s) => match sheet.last_track_mut() {
+                Some(tk) => tk.push_title(s.to_owned()),
+                None => sheet.header.push_title(s.to_owned()),
+            },
+            Command::Performer(s) => match sheet.last_track_mut() {
+                Some(tk) => tk.push_performer(s.to_owned()),
+                _ => sheet.header.push_performer(s.to_owned()),
+            },
+            Command::Songwriter(s) => match sheet.last_track_mut() {
+                Some(tk) => tk.push_songwriter(s.to_owned()),
+                _ => sheet.header.push_songwriter(s.to_owned()),
+            },
+            Command::Catalog(s) => if sheet.header.catalog.is_none() {
+                sheet.header.set_catalog(s.parse()?)?;
+            } else {
+                return Err(ParseError::syntax_error(command, "multiple `CATALOG` commands is not allowed"));
+            }
+            Command::Cdtextfile(s) => {
+                sheet.header.set_cdtextfile(s.to_owned());
+            },
+            Command::File(name, format) => {
+                sheet.push_track_info(TrackInfo::new(name.to_owned(), format.to_owned()));
+            },
+            Command::Track(id, format) => {
+                match sheet.last_track_info_mut() {
+                    Some(tk) => tk.push_track(Track::new_unchecked(utils::number(2)(id)?.1, format.to_owned())),
+                    None => return Err(ParseError::syntax_error(command, "Multiple `CATALOG` commands is not allowed")),
+                }
+            },
+            Command::Index(id, duration) => match sheet.last_track_mut() {
+                Some(tk) if tk.postgap.is_none() => {
+                    tk.push_index(Index::new_unchecked(utils::number(2)(id)?.1, duration.parse()?))
+                },
+                Some(_) => return Err(ParseError::syntax_error(command, "Command `INDEX` should be before `POSTGAP`")),
+                None => return Err(ParseError::unexpected_token("INDEX")),
+            }
+            Command::Pregap(duration) => match sheet.last_track_mut() {
+                Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
+                    tk.set_pregep(duration.parse()?);
+                },
+                Some(tk) if !tk.index.is_empty() => return Err(ParseError::syntax_error(command, "Command `PREGAP` should be before `INDEX`")),
+                Some(tk) if tk.pregap.is_some() => return Err(ParseError::syntax_error(command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope")),
+                _ => return Err(ParseError::unexpected_token("PREGAP")),
+            },
+            Command::Postgap(duration) => match sheet.last_track_mut() {
+                Some(tk) if tk.postgap.is_none() => {
+                    tk.set_postgep(duration.parse()?);
+                },
+                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope")),
+                None => return Err(ParseError::unexpected_token("POSTGAP")),
+            },
+            Command::Isrc(s) => match sheet.last_track_mut() {
+                Some(tk) if tk.isrc.is_none() => {
+                    tk.set_isrc(s.to_owned());
+                },
+                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `ISRC` commands are not allowed in one `TRACK` scope")),
+                None => return Err(ParseError::unexpected_token("ISRC")),
+            },
+            Command::Flags(s) => match sheet.last_track_mut() {
+                Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
+                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope")),
+                None => return Err(ParseError::unexpected_token("FLAGS")),
+            }
+        }
+        Ok(())
+    }
 }
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Result<Self, Error> {
@@ -127,86 +197,22 @@ impl<'a> Parser<'a> {
             Some(cl) => cl,
             None => return Err(ParseError::Empty),
         };
-        let command = current_line.command();
-        match *command {
-            Command::Rem(s) => self.sheet.comments.push(s.to_owned()),
-            Command::Title(s) => match self.sheet.last_track_mut() {
-                Some(tk) => tk.push_title(s.to_owned()),
-                None => self.sheet.header.push_title(s.to_owned()),
-            },
-            Command::Performer(s) => match self.sheet.last_track_mut() {
-                Some(tk) => tk.push_performer(s.to_owned()),
-                _ => self.sheet.header.push_performer(s.to_owned()),
-            },
-            Command::Songwriter(s) => match self.sheet.last_track_mut() {
-                Some(tk) => tk.push_songwriter(s.to_owned()),
-                _ => self.sheet.header.push_songwriter(s.to_owned()),
-            },
-            Command::Catalog(s) => if self.sheet.header.catalog.is_none() {
-                self.sheet.header.set_catalog(s.parse()?)?;
-            } else {
-                return Err(ParseError::syntax_error(command, "multiple `CATALOG` commands is not allowed"));
-            }
-            Command::Cdtextfile(s) => {
-                self.sheet.header.set_cdtextfile(s.to_owned());
-            },
-            Command::File(name, format) => {
-                self.sheet.push_track_info(TrackInfo::new(name.to_owned(), format.to_owned()));
-            },
-            Command::Track(id, format) => {
-                match self.sheet.last_track_info_mut() {
-                    Some(tk) => tk.push_track(Track::new_unchecked(utils::number(2)(id)?.1, format.to_owned())),
-                    None => return Err(ParseError::syntax_error(command, "Multiple `CATALOG` commands is not allowed")),
-                }
-            },
-            Command::Index(id, duration) => match self.sheet.last_track_mut() {
-                Some(tk) if tk.postgap.is_none() => {
-                    tk.push_index(Index::new_unchecked(utils::number(2)(id)?.1, duration.parse()?))
-                },
-                Some(_) => return Err(ParseError::syntax_error(command, "Command `INDEX` should be before `POSTGAP`")),
-                None => return Err(ParseError::unexpected_token("INDEX")),
-            }
-            Command::Pregap(duration) => match self.sheet.last_track_mut() {
-                Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
-                    tk.set_pregep(duration.parse()?);
-                },
-                Some(tk) if !tk.index.is_empty() => return Err(ParseError::syntax_error(command, "Command `PREGAP` should be before `INDEX`")),
-                Some(tk) if tk.pregap.is_some() => return Err(ParseError::syntax_error(command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope")),
-                _ => return Err(ParseError::unexpected_token("PREGAP")),
-            },
-            Command::Postgap(duration) => match self.sheet.last_track_mut() {
-                Some(tk) if tk.postgap.is_none() => {
-                    tk.set_postgep(duration.parse()?);
-                },
-                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope")),
-                None => return Err(ParseError::unexpected_token("POSTGAP")),
-            },
-            Command::Isrc(s) => match self.sheet.last_track_mut() {
-                Some(tk) if tk.isrc.is_none() => {
-                    tk.set_isrc(s.to_owned());
-                },
-                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `ISRC` commands are not allowed in one `TRACK` scope")),
-                None => return Err(ParseError::unexpected_token("ISRC")),
-            },
-            Command::Flags(s) => match self.sheet.last_track_mut() {
-                Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
-                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope")),
-                None => return Err(ParseError::unexpected_token("FLAGS")),
-            }
-        }
+        current_line.parse(&mut self.sheet)?;
         Ok(current_line)
     }
     pub fn parse(mut self) -> Result<CueSheet, Error> {
+        self.parse_to_end().map(|_| self.sheet)
+    }
+    pub fn parse_to_end(&mut self) -> Result<(), Error> {
         let mut current_line = 0;
-        loop {
-            match self.parse_next_line() {
-                Ok(cl) => current_line = cl.line(),
-                Err(e) => match e {
-                    ParseError::Empty => break,
-                    _ => return Err(Error::new(e, current_line + 1)),
-                }
-            }
-        }
-        Ok(self.sheet)
+        let sheet = &mut self.sheet;
+        self.lines
+            .iter()
+            .map(|l| {
+                current_line = l.line();
+                l.parse(sheet)
+            })
+            .collect::<Result<(), ParseError>>()
+            .map_err(|e| Error::new(e, current_line))
     }
 }
