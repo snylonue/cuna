@@ -25,7 +25,6 @@ pub enum Command<'a> {
 #[derive(Debug, Clone)]
 pub struct Line<'a> {
     command: Command<'a>,
-    indentations: usize,
     line: usize,
 }
 #[derive(Debug, Clone)]
@@ -96,20 +95,16 @@ impl<'a> fmt::Display for Command<'a> {
 }
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, line: usize) -> Result<Self, Error> {
-        let indentations = utils::indentation_count(s);
         let command = Command::new(&s.trim()).map_err(
             |e| Error::new(e, line)
         )?;
-        Ok( Self { command, indentations, line })
+        Ok( Self { command, line })
     }
     pub fn command(&self) -> &Command {
         &self.command
     }
     pub fn line(&self) -> usize {
         self.line
-    }
-    pub fn indentations(&self) -> usize {
-        self.indentations
     }
 }
 impl<'a> Parser<'a> {

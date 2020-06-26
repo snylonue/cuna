@@ -1,11 +1,9 @@
 use nom::IResult;
-use nom::error::ErrorKind;
 use nom::bytes::complete::tag;
 use nom::bytes::complete::tag_no_case;
 use nom::bytes::complete::take_until;
 use nom::sequence::delimited;
 use nom::sequence::terminated;
-use nom::character::complete::space0;
 use nom::character::complete::digit0;
 use nom::branch::alt;
 use nom::combinator::rest;
@@ -45,7 +43,4 @@ pub fn number(n: usize) -> impl Fn(&str) -> IResult<&str, u8> {
         ),
         |d: &str| d.parse().unwrap()
     )(i)
-}
-pub(crate) fn indentation_count(s: &str) -> usize {
-    space0::<_, (_, ErrorKind)>(s).map(|(_, o)| o.len()).unwrap()
 }
