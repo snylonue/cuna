@@ -6,7 +6,6 @@ pub mod track;
 pub mod comment;
 pub mod parser;
 
-use anyhow::Result;
 use std::str::FromStr;
 use std::fs::File;
 use std::io::Read;
@@ -30,14 +29,14 @@ impl CueSheet {
     }
     /// Parses a file as cue sheet
     /// **File must use UTF-8 encoding (BOM header will be removed)**
-    pub fn from_file(file: &mut File) -> Result<Self> {
+    pub fn from_file(file: &mut File) -> Result<Self, Error> {
         let mut buf = String::new();
         file.read_to_string(&mut buf)?;
         Ok(buf.trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
     }
     /// Opens a file and parses it as a cue sheet
     /// **File must use UTF-8 encoding (BOM header will be removed)**
-    pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
+    pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
         Self::from_file(&mut file)
     }

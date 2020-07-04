@@ -2,19 +2,22 @@ use thiserror::Error;
 use nom::error::ErrorKind;
 use std::fmt;
 use std::num::ParseIntError;
+use std::io;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
+    /// There is something wrong in the cue sheet
     #[error("SyntaxError: {0}")]
     SyntaxError(String),
+    /// Errors from nom
     #[error("ParserError: {}", .0.description())]
     ParserError(ErrorKind),
-    #[error("InvaildNumber: {0}")]
-    InvaildNumber(#[from] ParseIntError),
+    /// There is nothing to parse
     #[error("Nothing to parse")]
     Empty,
-    #[error("Unknown error")]
-    Unknown,
+    /// Fails to read a file
+    #[error("IoError: {0}")]
+    IoError(#[from] io::Error),
 }
 #[derive(Debug, Error)]
 pub struct Error {
@@ -44,6 +47,11 @@ impl<I> From<nom::Err<(I, ErrorKind)>> for ParseError {
         }
     }
 }
+impl From<ParseIntError> for ParseError {
+    fn from(e: ParseIntError) -> Self {
+        Self::err_msg(e)
+    }
+}
 impl Error {
     pub fn new(error: ParseError, at: usize) -> Self {
         Self { error, at: Some(at) }
@@ -54,10 +62,6 @@ impl Error {
     pub fn error(&self) -> &ParseError {
         &self.error
     }
-    #[allow(dead_code)]
-    pub(crate) fn set_at_line(&mut self, line: usize) {
-        self.at.replace(line);
-    }
 }
 impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 
@@ -67,8 +71,8 @@ impl fmt::Display for Error {
         }
     }
 }
-impl From<ParseError> for Error {
-    fn from(e: ParseError) -> Self {
-        Self::from_parse_error(e)
+impl<E: Into<ParseError>> From<E> for Error {
+    fn from(e: E) -> Self {
+        Self::from_parse_error(e.into())
     }
 }
