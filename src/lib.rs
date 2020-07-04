@@ -43,6 +43,15 @@ impl CueSheet {
         let mut file = File::open(path)?;
         Self::from_file(&mut file)
     }
+    pub fn header(&self) -> &Header {
+        &self.header
+    }
+    pub fn tracks(&self) -> &Vec<TrackInfo> {
+        &self.tracks
+    }
+    pub fn comments(&self) -> &Comment {
+        &self.comments
+    }
     pub fn push_track_info(&mut self, track: TrackInfo) {
         self.tracks.push(track);
     }

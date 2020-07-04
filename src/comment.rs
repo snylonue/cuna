@@ -17,14 +17,21 @@ impl Comment {
     pub fn push(&mut self, s: String) {
         self.0.push(s)
     }
+    /// Returns the line at `line` (zero-indexed)
+    pub fn line(&self, line: usize) -> Option<&String> {
+        self.0.get(line)
+    }
 }
 impl<S: Into<String>> FromIterator<S> for Comment {
     fn from_iter<T: IntoIterator<Item = S>>(iter: T) -> Self {
         Self(iter.into_iter().map(Into::into).collect())
     }
 }
-impl AsRef<Vec<String>> for Comment {
-    fn as_ref(&self) -> &Vec<String> { 
-        &self.0
-     }
+impl IntoIterator for Comment {
+    type Item = String;
+    type IntoIter = <Vec<String> as IntoIterator>::IntoIter;
+    
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
 }
