@@ -35,7 +35,7 @@ pub struct TrackInfo {
 }
 
 impl Index {
-    pub(crate) fn new_unchecked(id: u8, begin_time: Duration) -> Self {
+    pub(crate) const fn new_unchecked(id: u8, begin_time: Duration) -> Self {
         Self { id, begin_time }
     }
     pub fn new(id: u8, begin_time: Duration) -> Self {
@@ -67,6 +67,11 @@ impl Track {
     pub(crate) fn new_unchecked(id: u8, format: String) -> Self {
         Self { id, format, ..Self::default() }
     }
+    /// Constructs a new Track
+    /// 
+    /// # Panics
+    ///
+    /// Panics if id > 99
     pub fn new(id: u8, format: String) -> Self {
         Self::new_opt(id, format).expect("track-id must be between 1 and 99")
     }
@@ -117,18 +122,22 @@ impl FromStr for Track {
     }
 }
 impl TrackInfo {
+    /// Constructs a new TrackInfo
     pub const fn new(name: String, format: String) -> Self {
         Self::with_tracks(name, format, Vec::new())
     }
     pub const fn with_tracks(name: String, format: String, tracks: Vec<Track>) -> Self {
         Self { name, format, tracks }
     }
+    /// Returns the last Track or None if self.tracks is empty
     pub fn last_track(&self) -> Option<&Track> {
         self.tracks.last()
     }
+    /// The mutable version of last_track()
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
         self.tracks.last_mut()
     }
+    /// Appends an element to the back of self.tracks
     pub fn push_track(&mut self , track: Track) {
         self.tracks.push(track)
     }

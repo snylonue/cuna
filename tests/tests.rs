@@ -6,7 +6,7 @@ mod time {
         let duration = Duration::new(61, 29, 73);
         assert_eq!(Duration::from_msf_opt(61, 29, 73), Some(duration.clone()));
         assert_eq!(Duration::from_msf_opt(61, 29, 77), None);
-        assert_eq!(Duration::from_msf_force(61, 28, 73 + 75), duration);
+        assert_eq!(Duration::from_msf(61, 28, 73 + 75), duration);
     }
     #[test]
     fn display() {

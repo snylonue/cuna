@@ -16,6 +16,7 @@ use crate::header::Header;
 use crate::comment::Comment;
 use crate::error::Error;
 
+/// Represents a cue sheet
 #[derive(Debug, Clone, Default)]
 pub struct CueSheet {
     pub header: Header,
@@ -27,7 +28,8 @@ impl CueSheet {
     pub const fn new(header: Header, tracks: Vec<TrackInfo>, comments: Comment) -> Self {
         Self { header, tracks, comments }
     }
-    /// Parses a file as cue sheet
+    /// Parses a file as a cue sheet
+    /// 
     /// **File must use UTF-8 encoding (BOM header will be removed)**
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
         let mut buf = String::new();
@@ -35,6 +37,7 @@ impl CueSheet {
         Ok(buf.trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
     }
     /// Opens a file and parses it as a cue sheet
+    /// 
     /// **File must use UTF-8 encoding (BOM header will be removed)**
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;

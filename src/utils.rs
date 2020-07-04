@@ -29,6 +29,7 @@ pub fn quote_opt(content: &str) -> IResult<&str, &str> {
 pub fn token(content: &str) -> IResult<&str, &str> {
     terminated(take_until(" "), tag(" "))(content)
 }
+/// Takes digits and recognizes them as an n digit
 pub fn number(n: usize) -> impl Fn(&str) -> IResult<&str, u8> {
     move |i: &str| map(
         verify(
