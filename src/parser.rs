@@ -204,15 +204,13 @@ impl<'a> Parser<'a> {
         self.parse_to_end().map(|_| self.sheet)
     }
     pub fn parse_to_end(&mut self) -> Result<(), Error> {
-        let mut current_line = 0;
         let sheet = &mut self.sheet;
-        self.lines
-            .iter()
-            .map(|l| {
-                current_line = l.line();
-                l.parse(sheet)
-            })
-            .collect::<Result<(), ParseError>>()
-            .map_err(|e| Error::new(e, current_line))
+        for (current, line) in self.lines.iter().enumerate() {
+            match line.parse(sheet) {
+                Ok(_) => {},
+                Err(e) => return Err(Error::new(e, current)),
+            }
+        }
+        Ok(())
     }
 }
