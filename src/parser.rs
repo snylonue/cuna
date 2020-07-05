@@ -44,7 +44,7 @@ impl<'a> Command<'a> {
         let (rest, content) = match utils::quote_opt(content.trim()) {
             Ok(ok) => ok,
             Err(e) => match e {
-                nom::Err::Error((es, _)) => return Err(ParseError::syntax_error(es, "invaild string")),
+                nom::Err::Error((es, _)) => return Err(ParseError::syntax_error(es, "invalid string")),
                 nom::Err::Failure((_, ek)) => return Err(ParseError::ParserError(ek)),
                 nom::Err::Incomplete(_) => unreachable!(),
             }

@@ -21,7 +21,7 @@ impl Duration {
     ///
     /// Panics if seconds >= 60 or frames >= 75
     pub fn new(minutes: u32, seconds: u32, frames: u32) -> Self {
-        Self::from_msf_opt(minutes, seconds, frames).expect("Invaild time")
+        Self::from_msf_opt(minutes, seconds, frames).expect("Invalid time")
     }
     /// Constructs a new Duration with minutes, seconds and frames, or returns None if seconds >= 60 or frames >= 75
     pub fn from_msf_opt(minutes: u32, seconds: u32, frames: u32) -> Option<Self> {
@@ -72,13 +72,11 @@ impl FromStr for Duration {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let err_msg = |_| ParseError::syntax_error(s, "invaild duration");
         let (_, (minutes, seconds, frames)) = tuple((
             terminated(map(digit1, |d: &str| d.parse().unwrap()), tag(":")),
             terminated(number(2), tag(":")), 
             number(2)
-        ))(s).map_err(err_msg)?;
-        // minutes, seconds and frames are confirmed to be vaild u8 value
+        ))(s).map_err(|_| ParseError::syntax_error(s, "invalid duration"))?;
         Ok(Self::new(minutes, seconds as u32, frames as u32))
     }
 }

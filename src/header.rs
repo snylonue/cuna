@@ -35,7 +35,7 @@ impl Header {
         if len(catalog) == 13 {
             Ok(self.catalog.replace(catalog))
         } else {
-            Err(ParseError::syntax_error(catalog, "invaild catalog"))
+            Err(ParseError::syntax_error(catalog, "invalid catalog"))
         }
     }
     pub fn cdtextfile(&self) -> &Option<String> {
