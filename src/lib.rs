@@ -17,7 +17,7 @@ use crate::comment::Comment;
 use crate::error::Error;
 
 /// Represents a cue sheet
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct CueSheet {
     pub header: Header,
     pub tracks: Vec<TrackInfo>,
@@ -71,6 +71,7 @@ impl CueSheet {
 impl FromStr for CueSheet {
     type Err = Error;
 
+    /// s must be UTF-8 encoding without BOM header
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         parser::Parser::new(s)?.parse()
     }

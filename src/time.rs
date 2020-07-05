@@ -8,7 +8,7 @@ use std::fmt;
 use crate::utils::number;
 use crate::error::ParseError;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Default, Hash, Copy)]
 pub struct Duration {
     seconds: u32,
     frames: u8,

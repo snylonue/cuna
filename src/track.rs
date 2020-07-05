@@ -9,12 +9,12 @@ use crate::time::Duration;
 use crate::utils;
 use crate::error::ParseError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Copy)]
 pub struct Index {
     pub(crate) id: u8, // index id must between 1 and 99
     pub begin_time: Duration,
 }
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Track {
     pub(crate) id: u8, // track-id must between 1 and 99
     pub format: String,
@@ -27,7 +27,7 @@ pub struct Track {
     pub isrc: Option<String>,
     pub flags: Option<Vec<String>>
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct TrackInfo {
     pub name: String,
     pub format: String,

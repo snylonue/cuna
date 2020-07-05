@@ -1,7 +1,7 @@
 use std::iter::FromIterator;
 use crate::utils;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Comment(pub Vec<String>);
 
 impl Comment {

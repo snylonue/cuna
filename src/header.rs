@@ -1,6 +1,6 @@
 use crate::error::ParseError;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Header {
     pub title: Option<Vec<String>>,
     pub performer: Option<Vec<String>>,
