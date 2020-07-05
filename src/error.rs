@@ -62,6 +62,9 @@ impl Error {
     pub fn error(&self) -> &ParseError {
         &self.error
     }
+    pub fn at(&self) -> &Option<usize> {
+        &self.at
+    }
 }
 impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 
