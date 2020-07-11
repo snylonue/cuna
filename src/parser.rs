@@ -219,9 +219,9 @@ impl<'a> Parser<'a> {
         self.parse_to_end().map(|_| self.sheet)
     }
     pub fn parse_to_end(&mut self) -> Result<(), Error> {
-        for line in self.lines.iter() {
-            line.parse(&mut self.sheet)?
-        }
-        Ok(())
+        let sheet = &mut self.sheet;
+        self.lines.iter()
+            .map(|l| l.parse(sheet))
+            .collect()
     }
 }
