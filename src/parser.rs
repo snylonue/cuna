@@ -52,7 +52,7 @@ pub struct Parser<'a> {
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
-        let (content, command) = match utils::token(s) {
+        let (content, command) = match utils::token(s.trim()) {
             Ok(ok) => ok,
             Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
         };
