@@ -1,5 +1,8 @@
+type Result = std::result::Result<(), cuna::error::ParseError>;
+
 #[cfg(test)]
 mod time {
+    use super::*;
     use cuna::time::*;
     #[test]
     fn create() {
@@ -14,11 +17,12 @@ mod time {
         assert_eq!(duration.to_string(), "61:29:73");
     }
     #[test]
-    fn parse() {
-        assert_eq!("61:29:73".parse::<Duration>().unwrap(), Duration::new(61, 29, 73));
+    fn parse() -> Result {
+        assert_eq!("61:29:73".parse::<Duration>()?, Duration::new(61, 29, 73));
         assert!("xd".parse::<Duration>().is_err());
         assert!("6:772:11".parse::<Duration>().is_err());
         assert!("6:72:111".parse::<Duration>().is_err());
+        Ok(())
     }
     #[test]
     fn modify() {
@@ -39,16 +43,24 @@ mod time {
 }
 #[cfg(test)]
 mod command {
+    use super::*;
     use cuna::parser::Command;
 
     #[test]
-    fn display() {
+    fn new() -> Result {
+        let cmd = r#"PERFORMER "Supercell""#;
+        Command::new(cmd)?;
+        Ok(())
+    }
+    #[test]
+    fn display() -> Result {
         let cmds = r#"REM COMMENT ExactAudioCopy v0.99pb5
         PERFORMER "Supercell"
         TITLE "My Dearest"
         FILE "Supercell - My Dearest.flac" WAVE"#;
         for (cmd, ori) in cmds.lines().map(Command::new).zip(cmds.lines()) {
-            assert_eq!(format!("{}", cmd.unwrap()), ori.trim().to_string())
+            assert_eq!(format!("{}", cmd?), ori.trim().to_string())
         }
+        Ok(())
     }
 }
