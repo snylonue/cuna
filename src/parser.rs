@@ -1,3 +1,18 @@
+macro_rules! fail {
+    (token $self: ident, $token: expr) => {
+        {
+            let err = $crate::error::ParseError::unexpected_token($token);
+            return Err($crate::error::Error::new(err, $self.line));
+        }
+    };
+    (syntax $self: ident, $cmd: expr, $msg: expr ) => {
+        {
+            let err = $crate::error::ParseError::syntax_error($cmd, $msg);
+            return Err($crate::error::Error::new(err, $self.line));
+        }
+    }
+}
+
 use std::collections::VecDeque;
 use std::fmt;
 use crate::error::ParseError;
@@ -75,7 +90,7 @@ impl<'a> Command<'a> {
         }
     }
 }
-impl<'a> fmt::Display for Command<'a> {
+impl fmt::Display for Command<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 
         let command = match *self {
             Command::Rem(c) => format!("REM {}", c),
@@ -108,7 +123,7 @@ impl<'a> Line<'a> {
     pub fn line(&self) -> usize {
         self.line
     }
-    pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), ParseError> {
+    pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), Error> {
         let command = self.command();
         match *command {
             Command::Rem(s) => sheet.comments.push(s.to_owned()),
@@ -127,7 +142,7 @@ impl<'a> Line<'a> {
             Command::Catalog(s) => if sheet.header.catalog.is_none() {
                 sheet.header.set_catalog(s.parse()?)?;
             } else {
-                return Err(ParseError::syntax_error(command, "multiple `CATALOG` commands is not allowed"));
+                fail!(syntax self, command, "multiple `CATALOG` commands is not allowed")
             }
             Command::Cdtextfile(s) => {
                 sheet.header.set_cdtextfile(s.to_owned());
@@ -138,42 +153,42 @@ impl<'a> Line<'a> {
             Command::Track(id, format) => {
                 match sheet.last_track_info_mut() {
                     Some(tk) => tk.push_track(Track::new_unchecked(utils::number(2)(id)?.1, format.to_owned())),
-                    None => return Err(ParseError::syntax_error(command, "Multiple `CATALOG` commands is not allowed")),
+                    None => fail!(syntax self, command, "Multiple `CATALOG` commands is not allowed")
                 }
             },
             Command::Index(id, duration) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
                     tk.push_index(Index::new_unchecked(utils::number(2)(id)?.1, duration.parse()?))
                 },
-                Some(_) => return Err(ParseError::syntax_error(command, "Command `INDEX` should be before `POSTGAP`")),
-                None => return Err(ParseError::unexpected_token("INDEX")),
+                Some(_) => fail!(syntax self, command, "Command `INDEX` should be before `POSTGAP`"),
+                None => fail!(token self, "INDEX"),
             }
             Command::Pregap(duration) => match sheet.last_track_mut() {
                 Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
                     tk.set_pregep(duration.parse()?);
                 },
-                Some(tk) if !tk.index.is_empty() => return Err(ParseError::syntax_error(command, "Command `PREGAP` should be before `INDEX`")),
-                Some(tk) if tk.pregap.is_some() => return Err(ParseError::syntax_error(command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope")),
-                _ => return Err(ParseError::unexpected_token("PREGAP")),
+                Some(tk) if !tk.index.is_empty() => fail!(syntax self, command, "Command `PREGAP` should be before `INDEX`"),
+                Some(tk) if tk.pregap.is_some() => fail!(syntax self, command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope"),
+                _ => fail!(token self, "PREGAP"),
             },
             Command::Postgap(duration) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
                     tk.set_postgep(duration.parse()?);
                 },
-                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope")),
-                None => return Err(ParseError::unexpected_token("POSTGAP")),
+                Some(_) => fail!(syntax self, command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope"),
+                None => fail!(token self, "POSTGAP"),
             },
             Command::Isrc(s) => match sheet.last_track_mut() {
                 Some(tk) if tk.isrc.is_none() => {
                     tk.set_isrc(s.to_owned());
                 },
-                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `ISRC` commands are not allowed in one `TRACK` scope")),
-                None => return Err(ParseError::unexpected_token("ISRC")),
+                Some(_) => fail!(syntax self, command, "Multiple `ISRC` commands are not allowed in one `TRACK` scope"),
+                None => fail!(token self, "ISRC"),
             },
             Command::Flags(s) => match sheet.last_track_mut() {
                 Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
-                Some(_) => return Err(ParseError::syntax_error(command, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope")),
-                None => return Err(ParseError::unexpected_token("FLAGS")),
+                Some(_) => fail!(syntax self, command, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope"),
+                None => fail!(token self, "FLAGS"),
             }
         }
         Ok(())
@@ -192,10 +207,10 @@ impl<'a> Parser<'a> {
     pub fn current_line(&self) -> Option<&Line> {
         self.lines.front()
     }
-    pub fn parse_next_line(&mut self) -> Result<Line<'_>, ParseError> {
+    pub fn parse_next_line(&mut self) -> Result<Line<'_>, Error> {
         let current_line = match self.lines.pop_front() {
             Some(cl) => cl,
-            None => return Err(ParseError::Empty),
+            None => return Err(Error::from_parse_error(ParseError::Empty)),
         };
         current_line.parse(&mut self.sheet)?;
         Ok(current_line)
@@ -204,12 +219,8 @@ impl<'a> Parser<'a> {
         self.parse_to_end().map(|_| self.sheet)
     }
     pub fn parse_to_end(&mut self) -> Result<(), Error> {
-        let sheet = &mut self.sheet;
-        for (current, line) in self.lines.iter().enumerate() {
-            match line.parse(sheet) {
-                Ok(_) => {},
-                Err(e) => return Err(Error::new(e, current)),
-            }
+        for line in self.lines.iter() {
+            line.parse(&mut self.sheet)?
         }
         Ok(())
     }
