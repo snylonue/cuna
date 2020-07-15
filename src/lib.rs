@@ -20,13 +20,13 @@ use crate::error::Error;
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct CueSheet {
     pub header: Header,
-    pub tracks: Vec<TrackInfo>,
+    pub files: Vec<TrackInfo>,
     pub comments: Comment,
 }
 
 impl CueSheet {
-    pub const fn new(header: Header, tracks: Vec<TrackInfo>, comments: Comment) -> Self {
-        Self { header, tracks, comments }
+    pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
+        Self { header, files, comments }
     }
     /// Parses a file as a cue sheet
     /// 
@@ -46,20 +46,23 @@ impl CueSheet {
     pub fn header(&self) -> &Header {
         &self.header
     }
-    pub fn tracks(&self) -> &Vec<TrackInfo> {
-        &self.tracks
+    pub fn files(&self) -> &Vec<TrackInfo> {
+        &self.files
+    }
+    pub fn set_files(&mut self, files: Vec<TrackInfo>) -> Vec<TrackInfo> {
+        std::mem::replace(&mut self.files, files)
     }
     pub fn comments(&self) -> &Comment {
         &self.comments
     }
     pub fn push_track_info(&mut self, track: TrackInfo) {
-        self.tracks.push(track);
+        self.files.push(track);
     }
     pub fn last_track_info(&self) -> Option<&TrackInfo> {
-        self.tracks.last()
+        self.files.last()
     }
     pub fn last_track_info_mut(&mut self) -> Option<&mut TrackInfo> {
-        self.tracks.last_mut()
+        self.files.last_mut()
     }
     pub fn last_track(&self) -> Option<&Track> {
         self.last_track_info().map(|tk| tk.last_track()).flatten()
