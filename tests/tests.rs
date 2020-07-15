@@ -1,4 +1,4 @@
-type Result = std::result::Result<(), cuna::error::ParseError>;
+type Result = std::result::Result<(), cuna::error::Error>;
 
 #[cfg(test)]
 mod time {
@@ -61,6 +61,19 @@ mod command {
         for (cmd, ori) in cmds.lines().map(Command::new).zip(cmds.lines()) {
             assert_eq!(format!("{}", cmd?), ori.trim().to_string())
         }
+        Ok(())
+    }
+}
+#[cfg(test)]
+mod cue_sheet {
+    use super::*;
+    use cuna::CueSheet;
+
+    const CUE: &str = include_str!(r"EGOIST - Departures ～あなたにおくるアイの歌～.cue");
+
+    #[test]
+    fn new() -> Result {
+        CueSheet::from_utf8_with_bom(CUE)?;
         Ok(())
     }
 }
