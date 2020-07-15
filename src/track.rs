@@ -143,7 +143,7 @@ impl Track {
         where F: IntoIterator<Item = S>,
             S: Into<String>
     {
-        self.flags.get_or_insert_with(|| Vec::new()).extend(flags.into_iter().map(Into::into))
+        self.flags.get_or_insert_with(Vec::new).extend(flags.into_iter().map(Into::into))
     }
 }
 impl FromStr for Track {

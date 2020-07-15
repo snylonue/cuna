@@ -213,7 +213,7 @@ impl<'a> Parser<'a> {
     pub fn parse_next_line(&mut self) -> Result<Line<'_>, Error> {
         let current_line = match self.lines.pop_front() {
             Some(cl) => cl,
-            None => return Err(Error::from_parse_error(ParseError::Empty)),
+            None => return Err(Error::from(ParseError::Empty)),
         };
         current_line.parse(&mut self.sheet)?;
         Ok(current_line)
