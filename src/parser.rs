@@ -52,7 +52,11 @@ pub struct Parser<'a> {
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
-        let (content, command) = match utils::token(s.trim()) {
+        let s = match s.trim() {
+            "" => return Err(ParseError::Empty),
+            ts => ts,
+        };
+        let (content, command) = match utils::token(s) {
             Ok(ok) => ok,
             Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
         };
@@ -197,10 +201,9 @@ impl<'a> Line<'a> {
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Result<Self, Error> {
         let lines = s.lines()
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
+            .filter(|r| *r == Err(Error::from_parse_error(ParseError::Empty)))
             .collect::<Result<_, _>>()?;
         Ok(Self { lines, sheet: CueSheet::default() })
     }
