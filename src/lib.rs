@@ -28,13 +28,16 @@ impl CueSheet {
     pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
         Self { header, files, comments }
     }
+    pub fn from_utf8_with_bom<S: AsRef<str>>(s: S) -> Result<Self, Error> {
+        Ok(s.as_ref().trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
+    }
     /// Parses a file as a cue sheet
     /// 
     /// **File must use UTF-8 encoding (BOM header will be removed)**
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
         let mut buf = String::new();
         file.read_to_string(&mut buf)?;
-        Ok(buf.trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
+        Self::from_utf8_with_bom(buf)
     }
     /// Opens a file and parses it as a cue sheet
     /// 
