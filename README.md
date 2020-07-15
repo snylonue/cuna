@@ -1,10 +1,11 @@
 # cuna
 
-Another simple cue parser for Rust.
-There is no document and the api needs improving, so [rcue](https://github.com/gyng/rcue) or [libcue.rs](https://github.com/mistydemeo/libcue.rs) (though I can't compile this) may be a better choice.
+Another simple cue parser for Rust with [nom](https://github.com/Geal/nom).  
+Supports cue files in UTF-8 and UTF-8 with BOM.  
+Current document is not complete and the api is not so easy to use, so [rcue](https://github.com/gyng/rcue) or [libcue.rs](https://github.com/mistydemeo/libcue.rs) (though I can't compile this) may be a better choice.
 
 ## performance
-Here's a benchmark with a 42-line cue file.
+Here's a benchmark with a 42-line cue file(may be outdated).
 ``` rust
 cuna                    time:   [24.431 us 24.577 us 24.722 us]
                         change: [+29.680% +31.073% +32.504%] (p = 0.00 < 0.05)
@@ -23,3 +24,4 @@ Found 6 outliers among 100 measurements (6.00%)
 rcue_no_buf_reader      time:   [3.8906 us 3.9295 us 3.9688 us]
                         change: [-0.3731% +1.2804% +2.8758%] (p = 0.13 > 0.05)
                         No change in performance detected.```
+```
