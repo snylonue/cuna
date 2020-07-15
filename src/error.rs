@@ -19,7 +19,7 @@ pub enum ParseError {
     #[error("IoError: {0}")]
     IoError(#[from] io::Error),
 }
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub struct Error {
     #[source] error: ParseError,
     at: Option<usize>,
@@ -51,6 +51,28 @@ impl From<ParseIntError> for ParseError {
     fn from(e: ParseIntError) -> Self {
         Self::err_msg(e)
     }
+}
+impl PartialEq for ParseError {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            Self::SyntaxError(msg) => match other {
+                Self::SyntaxError(msg2) => msg == msg2,
+                _ => false
+            },
+            Self::ParserError(e) => match other {
+                Self::ParserError(e2) => e == e2,
+                _ => false,
+            },
+            Self::Empty => match other {
+                Self::Empty => true,
+                _ => false,
+            }
+            Self::IoError(e) => match other {
+                Self::IoError(e2) => e.kind() == e2.kind(),
+                _ => false, 
+            }
+        }
+    }   
 }
 impl Error {
     pub fn new(error: ParseError, at: usize) -> Self {

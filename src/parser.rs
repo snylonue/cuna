@@ -23,7 +23,7 @@ use crate::track::Index;
 use crate::track::TrackInfo;
 use crate::utils;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Command<'a> {
     Rem(&'a str),
     Title(&'a str),
@@ -39,12 +39,12 @@ pub enum Command<'a> {
     Isrc(&'a str),
     Flags(&'a str),
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Line<'a> {
     command: Command<'a>,
     line: usize,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Parser<'a> {
     lines: VecDeque<Line<'a>>,
     sheet: CueSheet,
