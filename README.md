@@ -23,5 +23,5 @@ Found 6 outliers among 100 measurements (6.00%)
 
 rcue_no_buf_reader      time:   [3.8906 us 3.9295 us 3.9688 us]
                         change: [-0.3731% +1.2804% +2.8758%] (p = 0.13 > 0.05)
-                        No change in performance detected.```
+                        No change in performance detected.
 ```
