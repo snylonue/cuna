@@ -121,10 +121,10 @@ impl<'a> Line<'a> {
         )?;
         Ok( Self { command, line })
     }
-    pub fn command(&self) -> &Command {
+    pub const fn command(&self) -> &Command {
         &self.command
     }
-    pub fn line(&self) -> usize {
+    pub const fn line(&self) -> usize {
         self.line
     }
     pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), Error> {
@@ -203,7 +203,7 @@ impl<'a> Parser<'a> {
         let lines = s.lines()
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
-            .filter(|r| *r == Err(Error::from_parse_error(ParseError::Empty)))
+            .filter(|r| *r == Err(Error::EMPTY))
             .collect::<Result<_, _>>()?;
         Ok(Self { lines, sheet: CueSheet::default() })
     }
@@ -213,7 +213,7 @@ impl<'a> Parser<'a> {
     pub fn parse_next_line(&mut self) -> Result<Line<'_>, Error> {
         let current_line = match self.lines.pop_front() {
             Some(cl) => cl,
-            None => return Err(Error::from(ParseError::Empty)),
+            None => return Err(Error::EMPTY),
         };
         current_line.parse(&mut self.sheet)?;
         Ok(current_line)

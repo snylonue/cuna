@@ -41,13 +41,13 @@ impl Duration {
         seconds %= 60;
         Self::new(minutes, seconds, frames)
     }
-    pub fn minutes(&self) -> u32 {
+    pub const fn minutes(&self) -> u32 {
         self.seconds / 60 as u32
     }
-    pub fn seconds(&self) -> u32 {
+    pub const fn seconds(&self) -> u32 {
         self.seconds % 60
     }
-    pub fn frames(&self) -> u32 {
+    pub const fn frames(&self) -> u32 {
         self.frames as u32
     }
     pub fn set_minutes(&mut self, minutes: u32) {

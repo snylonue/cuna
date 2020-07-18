@@ -35,7 +35,7 @@ impl ParseError {
     pub fn err_msg<S: fmt::Display>(msg: S) -> Self {
         Self::SyntaxError(msg.to_string())
     }
-    pub fn from_error_kind(ek: ErrorKind) -> Self {
+    pub const fn from_error_kind(ek: ErrorKind) -> Self {
         Self::ParserError(ek)
     }
 }
@@ -75,16 +75,18 @@ impl PartialEq for ParseError {
     }   
 }
 impl Error {
-    pub fn new(error: ParseError, at: usize) -> Self {
+    pub const EMPTY: Self = Self::from_parse_error(ParseError::Empty);
+
+    pub const fn new(error: ParseError, at: usize) -> Self {
         Self { error, at: Some(at) }
     }
-    pub fn from_parse_error(error: ParseError) -> Self {
+    pub const fn from_parse_error(error: ParseError) -> Self {
         Self { error, at: None }
     }
-    pub fn error(&self) -> &ParseError {
+    pub const fn error(&self) -> &ParseError {
         &self.error
     }
-    pub fn at(&self) -> &Option<usize> {
+    pub const fn at(&self) -> &Option<usize> {
         &self.at
     }
 }
