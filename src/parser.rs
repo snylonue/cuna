@@ -116,7 +116,7 @@ impl fmt::Display for Command<'_> {
 }
 impl<'a> Line<'a> {
     pub fn new(s: &'a str, line: usize) -> Result<Self, Error> {
-        let command = Command::new(&s.trim()).map_err(
+        let command = Command::new(s).map_err(
             |e| Error::new(e, line)
         )?;
         Ok( Self { command, line })
