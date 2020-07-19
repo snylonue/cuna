@@ -61,41 +61,34 @@ impl<'a> Command<'a> {
             Ok(ok) => ok,
             Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
         };
-        let (rest, content) = match utils::quote_opt(content.trim()) {
-            Ok(ok) => ok,
-            Err(e) => match e {
-                nom::Err::Error((es, _)) => return Err(ParseError::syntax_error(es, "invalid string")),
-                nom::Err::Failure((_, ek)) => return Err(ParseError::ParserError(ek)),
-                nom::Err::Incomplete(_) => unreachable!(),
-            }
-        };
         match command.as_ref() {
-            "title" => Ok(Self::Title(content)),
-            "performer" => Ok(Self::Performer(content)),
-            "songwriter" => Ok(Self::Songwriter(content)),
-            "catalog" => Ok(Self::Catalog(content)),
-            "cdtextfile" => Ok(Self::Cdtextfile(content)),
-            "file" => Ok(Self::File(content, rest.trim())),
-            "track" => {
-                let (format, id) = utils::token(content)
-                    .map_err(|_| ParseError::syntax_error(command, "missing arguments"))?;
-                Ok(Self::Track(id, format))
+            "title" => Ok(Self::Title(content.trim_matches('"'))),
+            "performer" => Ok(Self::Performer(content.trim_matches('"'))),
+            "songwriter" => Ok(Self::Songwriter(content.trim_matches('"'))),
+            "catalog" => Ok(Self::Catalog(content.trim_matches('"'))),
+            "cdtextfile" => Ok(Self::Cdtextfile(content.trim_matches('"'))),
+            "file" => match utils::quote_opt(content) {
+                Ok((format, path)) => Ok(Self::File(path.trim_matches('"'), format.trim())),
+                _ => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
-            "index" => {
-                let (duration, id) = utils::token(content)
-                    .map_err(|_| ParseError::syntax_error(command, "missing arguments"))?;
-                Ok(Self::Index(id, duration))
+            "track" => match utils::token(content) {
+                Ok((format, id)) => Ok(Self::Track(id, format)),
+                _ => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
-            "pregap" => Ok(Self::Pregap(content)),
-            "postgap" => Ok(Self::Postgap(content)),
-            "isrc" => Ok(Self::Isrc(content)),
-            "flag" => Ok(Self::Flags(content)),
+            "index" => match utils::token(content) {
+                Ok((duration, id)) => Ok(Self::Index(id, duration)),
+                _ => return Err(ParseError::syntax_error(command, "missing arguments")),
+            },
+            "pregap" => Ok(Self::Pregap(content.trim_matches('"'))),
+            "postgap" => Ok(Self::Postgap(content.trim_matches('"'))),
+            "isrc" => Ok(Self::Isrc(content.trim_matches('"'))),
+            "flag" => Ok(Self::Flags(content.trim_matches('"'))),
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
 }
 impl fmt::Display for Command<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let command = match *self {
             Command::Rem(c) => format!("REM {}", c),
             Command::Title(c) => format!(r#"TITLE "{}""#, c),
