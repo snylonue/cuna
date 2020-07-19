@@ -56,7 +56,8 @@ impl<'a> Command<'a> {
             "" => return Err(ParseError::Empty),
             ts => ts,
         };
-        let (content, command) = match utils::token(s) {
+        let (content, command) = match utils::token(s).map(|(cont, cmd)| (cont, cmd.to_ascii_lowercase())) {
+            Ok((cont, cmd)) if cmd.as_str() == "rem" => return Ok(Self::Rem(cont)),
             Ok(ok) => ok,
             Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
         };
@@ -68,8 +69,7 @@ impl<'a> Command<'a> {
                 nom::Err::Incomplete(_) => unreachable!(),
             }
         };
-        match command.to_ascii_lowercase().as_ref() {
-            "rem" => Ok(Self::Rem(content)),
+        match command.as_ref() {
             "title" => Ok(Self::Title(content)),
             "performer" => Ok(Self::Performer(content)),
             "songwriter" => Ok(Self::Songwriter(content)),
