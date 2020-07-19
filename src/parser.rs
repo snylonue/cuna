@@ -196,7 +196,7 @@ impl<'a> Parser<'a> {
         let lines = s.lines()
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
-            .filter(|r| *r == Err(Error::EMPTY))
+            .filter(|r| !(r.is_err() && r.as_ref().unwrap_err().kind() == Error::EMPTY.kind()))
             .collect::<Result<_, _>>()?;
         Ok(Self { lines, sheet: CueSheet::default() })
     }

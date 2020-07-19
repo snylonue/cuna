@@ -59,7 +59,7 @@ mod command {
         TITLE "My Dearest"
         FILE "Supercell - My Dearest.flac" WAVE"#;
         for (cmd, ori) in cmds.lines().map(Command::new).zip(cmds.lines()) {
-            assert_eq!(format!("{}", cmd?), ori.trim().to_string())
+            assert_eq!(cmd?.to_string(), ori.trim().to_string())
         }
         Ok(())
     }
@@ -73,7 +73,8 @@ mod cue_sheet {
 
     #[test]
     fn new() -> Result {
-        CueSheet::from_utf8_with_bom(CUE)?;
+        let sheet = CueSheet::from_utf8_with_bom(CUE)?;
+        assert_ne!(sheet, CueSheet::default());
         Ok(())
     }
 }
