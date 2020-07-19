@@ -83,7 +83,7 @@ impl Error {
     pub const fn from_parse_error(error: ParseError) -> Self {
         Self { error, at: None }
     }
-    pub const fn error(&self) -> &ParseError {
+    pub const fn kind(&self) -> &ParseError {
         &self.error
     }
     pub const fn at(&self) -> &Option<usize> {
