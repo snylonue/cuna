@@ -21,6 +21,7 @@ use crate::CueSheet;
 use crate::track::Track;
 use crate::track::Index;
 use crate::track::TrackInfo;
+use crate::time::Duration;
 use crate::utils;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -29,11 +30,11 @@ pub enum Command<'a> {
     Title(&'a str),
     Performer(&'a str),
     Songwriter(&'a str),
-    Catalog(&'a str),
+    Catalog(u64),
     Cdtextfile(&'a str),
     File(&'a str, &'a str),
-    Track(&'a str, &'a str),
-    Index(&'a str, &'a str),
+    Track(u8, &'a str),
+    Index(u8, Duration),
     Pregap(&'a str),
     Postgap(&'a str),
     Isrc(&'a str),
@@ -65,18 +66,18 @@ impl<'a> Command<'a> {
             "title" => Ok(Self::Title(content.trim_matches('"'))),
             "performer" => Ok(Self::Performer(content.trim_matches('"'))),
             "songwriter" => Ok(Self::Songwriter(content.trim_matches('"'))),
-            "catalog" => Ok(Self::Catalog(content.trim_matches('"'))),
+            "catalog" => Ok(Self::Catalog(content.parse()?)),
             "cdtextfile" => Ok(Self::Cdtextfile(content.trim_matches('"'))),
             "file" => match utils::quote_opt(content) {
                 Ok((format, path)) => Ok(Self::File(path.trim_matches('"'), format.trim())),
                 _ => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "track" => match utils::token(content) {
-                Ok((format, id)) => Ok(Self::Track(id, format)),
+                Ok((format, id)) => Ok(Self::Track(utils::number(2)(id)?.1, format)),
                 _ => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "index" => match utils::token(content) {
-                Ok((duration, id)) => Ok(Self::Index(id, duration)),
+                Ok((duration, id)) => Ok(Self::Index(utils::number(2)(id)?.1, duration.parse()?)),
                 _ => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "pregap" => Ok(Self::Pregap(content.trim_matches('"'))),
@@ -137,7 +138,7 @@ impl<'a> Line<'a> {
                 _ => sheet.header.push_songwriter(s.to_owned()),
             },
             Command::Catalog(s) => if sheet.header.catalog.is_none() {
-                sheet.header.set_catalog(s.parse()?)?;
+                sheet.header.set_catalog(s)?;
             } else {
                 fail!(syntax self, command, "multiple `CATALOG` commands is not allowed")
             }
@@ -149,13 +150,13 @@ impl<'a> Line<'a> {
             },
             Command::Track(id, format) => {
                 match sheet.last_file_mut() {
-                    Some(tk) => tk.push_track(Track::new_unchecked(utils::number(2)(id)?.1, format.to_owned())),
+                    Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
                     None => fail!(syntax self, command, "Multiple `CATALOG` commands is not allowed")
                 }
             },
             Command::Index(id, duration) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
-                    tk.push_index(Index::new_unchecked(utils::number(2)(id)?.1, duration.parse()?))
+                    tk.push_index(Index::new_unchecked(id, duration))
                 },
                 Some(_) => fail!(syntax self, command, "Command `INDEX` should be before `POSTGAP`"),
                 None => fail!(token self, "INDEX"),
