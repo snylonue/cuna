@@ -19,7 +19,7 @@ pub enum ParseError {
     #[error("IoError: {0}")]
     IoError(#[from] io::Error),
 }
-#[derive(Debug, Error, PartialEq)]
+#[derive(Debug, Error)]
 pub struct Error {
     #[source] error: ParseError,
     at: Option<usize>,
@@ -101,5 +101,10 @@ impl fmt::Display for Error {
 impl<E: Into<ParseError>> From<E> for Error {
     fn from(e: E) -> Self {
         Self::from_parse_error(e.into())
+    }
+}
+impl PartialEq for Error {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind() == other.kind()
     }
 }
