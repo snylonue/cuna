@@ -145,10 +145,10 @@ impl<'a> Line<'a> {
                 sheet.header.set_cdtextfile(s.to_owned());
             },
             Command::File(name, format) => {
-                sheet.push_track_info(TrackInfo::new(name.to_owned(), format.to_owned()));
+                sheet.push_file(TrackInfo::new(name.to_owned(), format.to_owned()));
             },
             Command::Track(id, format) => {
-                match sheet.last_track_info_mut() {
+                match sheet.last_file_mut() {
                     Some(tk) => tk.push_track(Track::new_unchecked(utils::number(2)(id)?.1, format.to_owned())),
                     None => fail!(syntax self, command, "Multiple `CATALOG` commands is not allowed")
                 }

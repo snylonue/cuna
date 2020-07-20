@@ -28,8 +28,8 @@ impl CueSheet {
     pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
         Self { header, files, comments }
     }
-    pub fn from_utf8_with_bom<S: AsRef<str>>(s: S) -> Result<Self, Error> {
-        Ok(s.as_ref().trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
+    pub fn from_utf8_with_bom(s: &str) -> Result<Self, Error> {
+        Ok(s.trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
     }
     /// Parses a file as a cue sheet
     /// 
@@ -37,7 +37,7 @@ impl CueSheet {
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
         let mut buf = String::new();
         file.read_to_string(&mut buf)?;
-        Self::from_utf8_with_bom(buf)
+        Self::from_utf8_with_bom(&buf)
     }
     /// Opens a file and parses it as a cue sheet
     /// 
@@ -58,20 +58,20 @@ impl CueSheet {
     pub fn comments(&self) -> &Comment {
         &self.comments
     }
-    pub fn push_track_info(&mut self, track: TrackInfo) {
+    pub fn push_file(&mut self, track: TrackInfo) {
         self.files.push(track);
     }
-    pub fn last_track_info(&self) -> Option<&TrackInfo> {
+    pub fn last_file(&self) -> Option<&TrackInfo> {
         self.files.last()
     }
-    pub fn last_track_info_mut(&mut self) -> Option<&mut TrackInfo> {
+    pub fn last_file_mut(&mut self) -> Option<&mut TrackInfo> {
         self.files.last_mut()
     }
     pub fn last_track(&self) -> Option<&Track> {
-        self.last_track_info().map(|tk| tk.last_track()).flatten()
+        self.last_file().map(|tk| tk.last_track()).flatten()
     }
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
-        self.last_track_info_mut().map(|tk| tk.last_track_mut()).flatten()
+        self.last_file_mut().map(|tk| tk.last_track_mut()).flatten()
     }
 }
 impl FromStr for CueSheet {
