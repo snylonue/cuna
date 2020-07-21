@@ -31,9 +31,12 @@ impl Header {
     pub fn catalog(&self) -> &Option<u64> {
         &self.catalog
     }
+    pub(crate) fn set_catalog_unchecked(&mut self, catalog: u64) -> Option<u64> {
+        self.catalog.replace(catalog)
+    }
     pub fn set_catalog(&mut self, catalog: u64) -> Result<Option<u64>, ParseError>{
         if len(catalog) == 13 {
-            Ok(self.catalog.replace(catalog))
+            Ok(self.set_catalog_unchecked(catalog))
         } else {
             Err(ParseError::syntax_error(catalog, "invalid catalog"))
         }

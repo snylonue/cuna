@@ -24,6 +24,12 @@ use crate::track::TrackInfo;
 use crate::time::Duration;
 use crate::utils;
 
+macro_rules! trim {
+    ($s: expr) => {
+        $s.trim_matches('"')
+    };
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Command<'a> {
     Rem(&'a str),
@@ -63,27 +69,30 @@ impl<'a> Command<'a> {
             Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
         };
         match command.as_ref() {
-            "title" => Ok(Self::Title(content.trim_matches('"'))),
-            "performer" => Ok(Self::Performer(content.trim_matches('"'))),
-            "songwriter" => Ok(Self::Songwriter(content.trim_matches('"'))),
-            "catalog" => Ok(Self::Catalog(content.parse()?)),
-            "cdtextfile" => Ok(Self::Cdtextfile(content.trim_matches('"'))),
+            "title" => Ok(Self::Title(trim!(content))),
+            "performer" => Ok(Self::Performer(trim!(content))),
+            "songwriter" => Ok(Self::Songwriter(trim!(content))),
+            "catalog" => match utils::number(13)(content) {
+                Ok((_, catalog)) => Ok(Self::Catalog(catalog)),
+                Err(_) => return Err(ParseError::syntax_error(content, "invaild catalog"))
+            },
+            "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
             "file" => match utils::quote_opt(content) {
-                Ok((format, path)) => Ok(Self::File(path.trim_matches('"'), format.trim())),
-                _ => return Err(ParseError::syntax_error(command, "missing arguments")),
+                Ok((format, path)) => Ok(Self::File(trim!(path), format.trim())),
+                Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "track" => match utils::token(content) {
                 Ok((format, id)) => Ok(Self::Track(utils::number(2)(id)?.1, format)),
-                _ => return Err(ParseError::syntax_error(command, "missing arguments")),
+                Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "index" => match utils::token(content) {
                 Ok((duration, id)) => Ok(Self::Index(utils::number(2)(id)?.1, duration.parse()?)),
-                _ => return Err(ParseError::syntax_error(command, "missing arguments")),
+                Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
-            "pregap" => Ok(Self::Pregap(content.trim_matches('"'))),
-            "postgap" => Ok(Self::Postgap(content.trim_matches('"'))),
-            "isrc" => Ok(Self::Isrc(content.trim_matches('"'))),
-            "flag" => Ok(Self::Flags(content.trim_matches('"'))),
+            "pregap" => Ok(Self::Pregap(trim!(content))),
+            "postgap" => Ok(Self::Postgap(trim!(content))),
+            "isrc" => Ok(Self::Isrc(trim!(content))),
+            "flag" => Ok(Self::Flags(trim!(content))),
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
@@ -138,7 +147,7 @@ impl<'a> Line<'a> {
                 _ => sheet.header.push_songwriter(s.to_owned()),
             },
             Command::Catalog(s) => if sheet.header.catalog.is_none() {
-                sheet.header.set_catalog(s)?;
+                sheet.header.set_catalog_unchecked(s);
             } else {
                 fail!(syntax self, command, "multiple `CATALOG` commands is not allowed")
             }
