@@ -77,7 +77,7 @@ impl FromStr for Duration {
             terminated(number(2), tag(":")), 
             number(2)
         ))(s).map_err(|_| ParseError::syntax_error(s, "invalid duration"))?;
-        Ok(Self::new(minutes, seconds as u32, frames as u32))
+        Ok(Self::new(minutes, seconds, frames))
     }
 }
 impl fmt::Display for Duration {

@@ -12,3 +12,4 @@ readme = "README.md"
 [dependencies]
 nom = "5"
 thiserror = "1"
+num-traits = "0.2"
