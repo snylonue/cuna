@@ -147,7 +147,7 @@ impl<'a> Line<'a> {
                 _ => sheet.header.push_songwriter(s.to_owned()),
             },
             Command::Catalog(s) => if sheet.header.catalog.is_none() {
-                sheet.header.set_catalog_unchecked(s);
+                sheet.header.catalog = Some(s);
             } else {
                 fail!(syntax self, command, "multiple `CATALOG` commands is not allowed")
             }
