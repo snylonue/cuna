@@ -6,6 +6,9 @@ edition = "2018"
 description = "A simple cue parser"
 license = "MIT"
 readme = "README.md"
+documentation = "https://github.com/snylonue/cuna"
+homepage = "https://github.com/snylonue/cuna"
+repository = "https://github.com/snylonue/cuna"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
