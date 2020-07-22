@@ -74,7 +74,10 @@ mod cue_sheet {
     #[test]
     fn new() -> Result {
         let sheet = CueSheet::from_utf8_with_bom(CUE)?;
-        assert_ne!(sheet, CueSheet::default());
+        assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+        assert_eq!(sheet.files.len(), 1);
+        assert_eq!(&sheet.files[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+        assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
         Ok(())
     }
 }
