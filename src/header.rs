@@ -10,14 +10,14 @@ pub struct Header {
 }
 
 impl Header {
-    pub fn title(&self) -> &Option<Vec<String>> {
-        &self.title
+    pub fn title(&self) -> Option<&Vec<String>> {
+        self.title.as_ref()
     }
     pub fn push_title(&mut self, title: String) {
         self.title.get_or_insert_with(|| Vec::with_capacity(1)).push(title)
     }
-    pub fn performer(&self) -> &Option<Vec<String>> {
-        &self.performer
+    pub fn performer(&self) -> Option<&Vec<String>> {
+        self.performer.as_ref()
     }
     pub fn push_performer(&mut self, performer: String) {
         self.performer.get_or_insert_with(|| Vec::with_capacity(1)).push(performer)
@@ -28,21 +28,21 @@ impl Header {
     pub fn push_songwriter(&mut self, songwriter: String) {
         self.songwriter.get_or_insert_with(|| Vec::with_capacity(1)).push(songwriter)
     }
-    pub fn catalog(&self) -> &Option<u64> {
-        &self.catalog
+    pub fn catalog(&self) -> Option<&u64> {
+        self.catalog.as_ref()
     }
     pub(crate) fn set_catalog_unchecked(&mut self, catalog: u64) -> Option<u64> {
         self.catalog.replace(catalog)
     }
     pub fn set_catalog(&mut self, catalog: u64) -> Result<Option<u64>, ParseError>{
         if len(catalog) == 13 {
-            Ok(self.set_catalog_unchecked(catalog))
+            Ok(self.catalog.replace(catalog))
         } else {
             Err(ParseError::syntax_error(catalog, "invalid catalog"))
         }
     }
-    pub fn cdtextfile(&self) -> &Option<String> {
-        &self.cdtextfile
+    pub fn cdtextfile(&self) -> Option<&str> {
+        self.cdtextfile.as_deref()
     }
     pub fn set_cdtextfile(&mut self, cdtextfile: String) -> Option<String> {
         self.cdtextfile.replace(cdtextfile)

@@ -91,29 +91,29 @@ impl Track {
     pub fn id(&self) -> u8 {
         self.id
     }
-    pub fn format(&self) -> &String {
+    pub fn format(&self) -> &str {
         &self.format
     }
-    pub fn pregap(&self) -> &Option<Duration> {
-        &self.pregap
+    pub fn pregap(&self) -> Option<&Duration> {
+        self.pregap.as_ref()
     }
-    pub fn postgap(&self) -> &Option<Duration> {
-        &self.postgap
+    pub fn postgap(&self) -> Option<&Duration> {
+        self.postgap.as_ref()
     }
-    pub fn title(&self) -> &Option<Vec<String>> {
-        &self.title
+    pub fn title(&self) -> Option<&Vec<String>> {
+        self.title.as_ref()
     }
     pub fn push_title(&mut self, title: String) {
         self.title.get_or_insert_with(|| Vec::with_capacity(1)).push(title)
     }
-    pub fn performer(&self) -> &Option<Vec<String>> {
-        &self.performer
+    pub fn performer(&self) -> Option<&Vec<String>> {
+        self.performer.as_ref()
     }
     pub fn push_performer(&mut self, performer: String) {
         self.performer.get_or_insert_with(|| Vec::with_capacity(1)).push(performer)
     }
-    pub fn songwriter(&self) -> &Option<Vec<String>> {
-        &self.songwriter
+    pub fn songwriter(&self) -> Option<&Vec<String>> {
+        self.songwriter.as_ref()
     }
     pub fn push_songwriter(&mut self, songwriter: String) {
         self.songwriter.get_or_insert_with(|| Vec::with_capacity(1)).push(songwriter)
@@ -127,14 +127,14 @@ impl Track {
     pub fn set_postgep(&mut self, postgap: Duration) -> Option<Duration> {
         self.postgap.replace(postgap)
     }
-    pub fn isrc(&self) -> &Option<String> {
-        &self.isrc
+    pub fn isrc(&self) -> Option<&str> {
+        self.isrc.as_deref()
     }
     pub fn set_isrc(&mut self, isrc: String) -> Option<String> {
         self.isrc.replace(isrc)
     }
-    pub fn flags(&self) -> &Option<Vec<String>> {
-        &self.flags
+    pub fn flags(&self) -> Option<&Vec<String>> {
+        self.flags.as_ref()
     }
     pub fn push_flag(&mut self, flag: String) {
         self.flags.get_or_insert_with(|| Vec::with_capacity(1)).push(flag)
