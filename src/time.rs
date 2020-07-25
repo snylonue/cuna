@@ -35,12 +35,8 @@ impl TimeStamp {
     /// Constructs a new TimeStamp with minutes, seconds and frames
     /// 
     /// It never panics, if seconds or frames are too big, they will be carried over into a larger unit
-    pub fn from_msf(mut minutes: u32, mut seconds: u32, mut frames: u32) -> Self {
-        seconds += (frames / 75) as u32;
-        frames %= 75;
-        minutes += seconds / 60;
-        seconds %= 60;
-        Self::new(minutes, seconds, frames)
+    pub const fn from_msf(minutes: u32, seconds: u32, frames: u32) -> Self {
+        Self { seconds: minutes * 60 + seconds + (frames / 75), frames: (frames % 75) as u8 }
     }
     pub const fn minutes(&self) -> u32 {
         self.seconds / 60 as u32
