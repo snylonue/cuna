@@ -9,13 +9,13 @@ use crate::utils::number;
 use crate::error::ParseError;
 
 #[derive(Debug, PartialEq, Eq, Clone, Default, Hash, Copy)]
-pub struct Duration {
+pub struct TimeStamp {
     seconds: u32,
     frames: u8,
 }
 
-impl Duration {
-    /// Constructs a new Duration with minutes, seconds and frames
+impl TimeStamp {
+    /// Constructs a new TimeStamp with minutes, seconds and frames
     /// 
     /// # Panics
     ///
@@ -23,7 +23,7 @@ impl Duration {
     pub fn new(minutes: u32, seconds: u32, frames: u32) -> Self {
         Self::from_msf_opt(minutes, seconds, frames).expect("Invalid time")
     }
-    /// Constructs a new Duration with minutes, seconds and frames, or returns None if seconds >= 60 or frames >= 75
+    /// Constructs a new TimeStamp with minutes, seconds and frames, or returns None if seconds >= 60 or frames >= 75
     pub fn from_msf_opt(minutes: u32, seconds: u32, frames: u32) -> Option<Self> {
         if seconds >= 60 || frames >= 75 {
             None
@@ -31,7 +31,7 @@ impl Duration {
             Some(Self { seconds: minutes * 60 + seconds, frames: frames as u8 })
         }
     }
-    /// Constructs a new Duration with minutes, seconds and frames
+    /// Constructs a new TimeStamp with minutes, seconds and frames
     /// 
     /// It never panics, if seconds or frames are too big, they will be carried over into a larger unit
     pub fn from_msf(mut minutes: u32, mut seconds: u32, mut frames: u32) -> Self {
@@ -68,7 +68,7 @@ impl Duration {
         self.frames = frames as u8;
     }
 }
-impl FromStr for Duration {
+impl FromStr for TimeStamp {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -76,11 +76,11 @@ impl FromStr for Duration {
             terminated(map(digit1, |d: &str| d.parse().unwrap()), tag(":")),
             terminated(number(2), tag(":")), 
             number(2)
-        ))(s).map_err(|_| ParseError::syntax_error(s, "invalid duration"))?;
+        ))(s).map_err(|_| ParseError::syntax_error(s, "invalid timestamp"))?;
         Ok(Self::new(minutes, seconds, frames))
     }
 }
-impl fmt::Display for Duration {
+impl fmt::Display for TimeStamp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:0>2}:{:0>2}:{:0>2}", self.minutes(), self.seconds(), self.frames())
     }

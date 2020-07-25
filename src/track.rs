@@ -5,22 +5,22 @@ use nom::combinator::rest;
 use nom::combinator::map_res;
 use nom::combinator::map;
 use std::str::FromStr;
-use crate::time::Duration;
+use crate::time::TimeStamp;
 use crate::utils;
 use crate::error::ParseError;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Copy)]
 pub struct Index {
     pub(crate) id: u8, // index id must between 1 and 99
-    pub begin_time: Duration,
+    pub begin_time: TimeStamp,
 }
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Track {
     pub(crate) id: u8, // track-id must between 1 and 99
     pub format: String,
     pub index: Vec<Index>,
-    pub pregap: Option<Duration>,
-    pub postgap: Option<Duration>,
+    pub pregap: Option<TimeStamp>,
+    pub postgap: Option<TimeStamp>,
     pub title: Option<Vec<String>>,
     pub performer: Option<Vec<String>>,
     pub songwriter: Option<Vec<String>>,
@@ -35,13 +35,13 @@ pub struct TrackInfo {
 }
 
 impl Index {
-    pub(crate) const fn new_unchecked(id: u8, begin_time: Duration) -> Self {
+    pub(crate) const fn new_unchecked(id: u8, begin_time: TimeStamp) -> Self {
         Self { id, begin_time }
     }
-    pub fn new(id: u8, begin_time: Duration) -> Self {
+    pub fn new(id: u8, begin_time: TimeStamp) -> Self {
         Self::new_opt(id, begin_time).expect("index-id must be between 1 and 99")
     }
-    pub fn new_opt(id: u8, begin_time: Duration) -> Option<Self> {
+    pub fn new_opt(id: u8, begin_time: TimeStamp) -> Option<Self> {
         if id <= 99 {
             Some(Self::new_unchecked(id, begin_time))
         } else {
@@ -51,7 +51,7 @@ impl Index {
     pub fn id(&self) -> u8 {
         self.id
     }
-    pub fn begin_time(&self) -> &Duration {
+    pub fn begin_time(&self) -> &TimeStamp {
         &self.begin_time
     }
 }
@@ -62,7 +62,7 @@ impl FromStr for Index {
         let (_, index) = map(
             tuple((
                 delimited(utils::keyword("INDEX"), utils::number(2), tag(" ")),
-                map_res(rest, Duration::from_str)
+                map_res(rest, TimeStamp::from_str)
             )),
             |(id, begin_time)| Self::new_unchecked(id, begin_time)
         )(s)?;
@@ -94,10 +94,10 @@ impl Track {
     pub fn format(&self) -> &str {
         &self.format
     }
-    pub fn pregap(&self) -> Option<&Duration> {
+    pub fn pregap(&self) -> Option<&TimeStamp> {
         self.pregap.as_ref()
     }
-    pub fn postgap(&self) -> Option<&Duration> {
+    pub fn postgap(&self) -> Option<&TimeStamp> {
         self.postgap.as_ref()
     }
     pub fn title(&self) -> Option<&Vec<String>> {
@@ -121,10 +121,10 @@ impl Track {
     pub fn push_index(&mut self, index: Index) {
         self.index.push(index)
     }
-    pub fn set_pregep(&mut self, pregap: Duration) -> Option<Duration> {
+    pub fn set_pregep(&mut self, pregap: TimeStamp) -> Option<TimeStamp> {
         self.pregap.replace(pregap)
     }
-    pub fn set_postgep(&mut self, postgap: Duration) -> Option<Duration> {
+    pub fn set_postgep(&mut self, postgap: TimeStamp) -> Option<TimeStamp> {
         self.postgap.replace(postgap)
     }
     pub fn isrc(&self) -> Option<&str> {

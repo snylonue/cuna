@@ -21,7 +21,7 @@ use crate::CueSheet;
 use crate::track::Track;
 use crate::track::Index;
 use crate::track::TrackInfo;
-use crate::time::Duration;
+use crate::time::TimeStamp;
 use crate::utils;
 
 macro_rules! trim {
@@ -40,7 +40,7 @@ pub enum Command<'a> {
     Cdtextfile(&'a str),
     File(&'a str, &'a str),
     Track(u8, &'a str),
-    Index(u8, Duration),
+    Index(u8, TimeStamp),
     Pregap(&'a str),
     Postgap(&'a str),
     Isrc(&'a str),
@@ -86,7 +86,7 @@ impl<'a> Command<'a> {
                 Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "index" => match utils::token(content) {
-                Ok((duration, id)) => Ok(Self::Index(utils::number(2)(id)?.1, duration.parse()?)),
+                Ok((timestamp, id)) => Ok(Self::Index(utils::number(2)(id)?.1, timestamp.parse()?)),
                 Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
             },
             "pregap" => Ok(Self::Pregap(trim!(content))),
@@ -108,7 +108,7 @@ impl fmt::Display for Command<'_> {
             Command::Cdtextfile(c) => format!(r#"CDTEXTFILE "{}""#, c),
             Command::File(name, tp) => format!(r#"FILE "{}" {}"#, name, tp),
             Command::Track(id, format) => format!("TRACK {} {}", id, format),
-            Command::Index(id, duration) => format!("INDEX {} {}", id, duration),
+            Command::Index(id, timestamp) => format!("INDEX {} {}", id, timestamp),
             Command::Pregap(c) => format!("PREGAP {}", c),
             Command::Postgap(c) => format!("POSTGAP {}", c),
             Command::Isrc(c) => format!("ISRC {}", c),
@@ -163,24 +163,24 @@ impl<'a> Line<'a> {
                     None => fail!(syntax self, command, "Multiple `CATALOG` commands is not allowed")
                 }
             },
-            Command::Index(id, duration) => match sheet.last_track_mut() {
+            Command::Index(id, timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
-                    tk.push_index(Index::new_unchecked(id, duration))
+                    tk.push_index(Index::new_unchecked(id, timestamp))
                 },
                 Some(_) => fail!(syntax self, command, "Command `INDEX` should be before `POSTGAP`"),
                 None => fail!(token self, "INDEX"),
             }
-            Command::Pregap(duration) => match sheet.last_track_mut() {
+            Command::Pregap(timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
-                    tk.set_pregep(duration.parse()?);
+                    tk.set_pregep(timestamp.parse()?);
                 },
                 Some(tk) if !tk.index.is_empty() => fail!(syntax self, command, "Command `PREGAP` should be before `INDEX`"),
                 Some(tk) if tk.pregap.is_some() => fail!(syntax self, command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope"),
                 _ => fail!(token self, "PREGAP"),
             },
-            Command::Postgap(duration) => match sheet.last_track_mut() {
+            Command::Postgap(timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
-                    tk.set_postgep(duration.parse()?);
+                    tk.set_postgep(timestamp.parse()?);
                 },
                 Some(_) => fail!(syntax self, command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope"),
                 None => fail!(token self, "POSTGAP"),

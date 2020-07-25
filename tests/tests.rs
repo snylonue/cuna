@@ -6,39 +6,39 @@ mod time {
     use cuna::time::*;
     #[test]
     fn create() {
-        let duration = Duration::new(61, 29, 73);
-        assert_eq!(Duration::from_msf_opt(61, 29, 73), Some(duration.clone()));
-        assert_eq!(Duration::from_msf_opt(61, 29, 77), None);
-        assert_eq!(Duration::from_msf(61, 28, 73 + 75), duration);
+        let timestamp = TimeStamp::new(61, 29, 73);
+        assert_eq!(TimeStamp::from_msf_opt(61, 29, 73), Some(timestamp.clone()));
+        assert_eq!(TimeStamp::from_msf_opt(61, 29, 77), None);
+        assert_eq!(TimeStamp::from_msf(61, 28, 73 + 75), timestamp);
     }
     #[test]
     fn display() {
-        let duration = Duration::new(61, 29, 73);
-        assert_eq!(duration.to_string(), "61:29:73");
+        let timestamp = TimeStamp::new(61, 29, 73);
+        assert_eq!(timestamp.to_string(), "61:29:73");
     }
     #[test]
     fn parse() -> Result {
-        assert_eq!("61:29:73".parse::<Duration>()?, Duration::new(61, 29, 73));
-        assert!("xd".parse::<Duration>().is_err());
-        assert!("6:772:11".parse::<Duration>().is_err());
-        assert!("6:72:111".parse::<Duration>().is_err());
+        assert_eq!("61:29:73".parse::<TimeStamp>()?, TimeStamp::new(61, 29, 73));
+        assert!("xd".parse::<TimeStamp>().is_err());
+        assert!("6:772:11".parse::<TimeStamp>().is_err());
+        assert!("6:72:111".parse::<TimeStamp>().is_err());
         Ok(())
     }
     #[test]
     fn modify() {
-        let mut duration = Duration::new(21, 29, 73);
-        duration.set_frames(21);
-        assert_eq!(duration, Duration::new(21, 29, 21));
-        duration.set_seconds(33);
-        assert_eq!(duration, Duration::new(21, 33, 21));
-        duration.set_minutes(28);
-        assert_eq!(duration, Duration::new(28, 33, 21));
+        let mut timestamp = TimeStamp::new(21, 29, 73);
+        timestamp.set_frames(21);
+        assert_eq!(timestamp, TimeStamp::new(21, 29, 21));
+        timestamp.set_seconds(33);
+        assert_eq!(timestamp, TimeStamp::new(21, 33, 21));
+        timestamp.set_minutes(28);
+        assert_eq!(timestamp, TimeStamp::new(28, 33, 21));
     }
     #[test]
     #[should_panic]
     fn modify_panic() {
-        let mut duration = Duration::new(61, 29, 73);
-        duration.set_frames(88);
+        let mut timestamp = TimeStamp::new(61, 29, 73);
+        timestamp.set_frames(88);
     }
 }
 #[cfg(test)]
