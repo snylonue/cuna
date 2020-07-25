@@ -4,6 +4,7 @@ type Result = std::result::Result<(), cuna::error::Error>;
 mod time {
     use super::*;
     use cuna::time::*;
+    use std::time::Duration;
     #[test]
     fn create() {
         let timestamp = TimeStamp::new(61, 29, 73);
@@ -39,6 +40,13 @@ mod time {
     fn modify_panic() {
         let mut timestamp = TimeStamp::new(61, 29, 73);
         timestamp.set_frames(88);
+    }
+    #[test]
+    fn convert() {
+        let timestamp = TimeStamp::new(0, 0, 30);
+        assert_eq!(Duration::from(timestamp), Duration::from_millis(400));
+        let duration = Duration::from_millis(400);
+        assert_eq!(TimeStamp::from(duration), TimeStamp::new(0, 0, 30));
     }
 }
 #[cfg(test)]

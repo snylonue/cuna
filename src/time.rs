@@ -5,6 +5,7 @@ use nom::sequence::tuple;
 use nom::combinator::map;
 use std::str::FromStr;
 use std::fmt;
+use std::time::Duration;
 use crate::utils::number;
 use crate::error::ParseError;
 
@@ -83,5 +84,17 @@ impl FromStr for TimeStamp {
 impl fmt::Display for TimeStamp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:0>2}:{:0>2}:{:0>2}", self.minutes(), self.seconds(), self.frames())
+    }
+}
+impl From<TimeStamp> for Duration {
+    fn from(ti: TimeStamp) -> Duration {
+        Duration::from_secs(ti.seconds() as u64) + Duration::from_millis((ti.frames() * 40 / 3) as u64)
+    }
+}
+impl From<Duration> for TimeStamp {
+    fn from(dr: Duration) -> Self {
+        let secs = dr.as_secs();
+        let frames = dr.subsec_millis() * 3 / 40;
+        Self::from_msf(0, secs as u32, frames)
     }
 }
