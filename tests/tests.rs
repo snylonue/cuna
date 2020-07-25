@@ -48,6 +48,15 @@ mod time {
         let duration = Duration::from_millis(400);
         assert_eq!(TimeStamp::from(duration), TimeStamp::new(0, 0, 30));
     }
+    #[test]
+    fn getter() {
+        let timestamp = TimeStamp::new(21, 29, 73);
+        assert_eq!(timestamp.minutes(), 21);
+        assert_eq!(timestamp.seconds(), 29);
+        assert_eq!(timestamp.frames(), 73);
+        assert_eq!(timestamp.as_seconds(), 1289);
+        assert_eq!(timestamp.as_frames(), 96748);
+    }
 }
 #[cfg(test)]
 mod command {

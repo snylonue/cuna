@@ -64,6 +64,12 @@ impl TimeStamp {
         assert!(frames < 75);
         self.frames = frames as u8;
     }
+    pub const fn as_seconds(&self) -> u32 {
+        self.seconds
+    }
+    pub const fn as_frames(&self) -> u32 {
+        self.as_seconds() * 75 + self.frames()
+    }
 }
 impl FromStr for TimeStamp {
     type Err = ParseError;
