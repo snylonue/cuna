@@ -54,7 +54,7 @@ pub struct Line<'a> {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Parser<'a> {
     lines: VecDeque<Line<'a>>,
-    sheet: CueSheet,
+    state: CueSheet,
 }
 
 impl<'a> Command<'a> {
@@ -203,29 +203,35 @@ impl<'a> Line<'a> {
 }
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Result<Self, Error> {
+        Self::with_state(s, CueSheet::default())
+    }
+    pub fn with_state(s: &'a str, state: CueSheet) -> Result<Self, Error> {
         let lines = s.lines()
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
             .filter(|r| r != &Err(Error::EMPTY))
             .collect::<Result<_, _>>()?;
-        Ok(Self { lines, sheet: CueSheet::default() })
+        Ok(Self { lines, state })
     }
     pub fn current_line(&self) -> Option<&Line> {
         self.lines.front()
+    }
+    pub fn state(&self) -> &CueSheet {
+        &self.state
     }
     pub fn parse_next_line(&mut self) -> Result<Line<'_>, Error> {
         let current_line = match self.lines.pop_front() {
             Some(cl) => cl,
             None => return Err(Error::EMPTY),
         };
-        current_line.parse(&mut self.sheet)?;
+        current_line.parse(&mut self.state)?;
         Ok(current_line)
     }
     pub fn parse(mut self) -> Result<CueSheet, Error> {
-        self.parse_to_end().map(|_| self.sheet)
+        self.parse_to_end().map(|_| self.state)
     }
     pub fn parse_to_end(&mut self) -> Result<(), Error> {
-        let sheet = &mut self.sheet;
+        let sheet = &mut self.state;
         self.lines.iter()
             .map(|l| l.parse(sheet))
             .collect()
