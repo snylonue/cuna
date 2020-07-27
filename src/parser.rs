@@ -1,3 +1,14 @@
+use std::collections::VecDeque;
+use std::fmt;
+use crate::error::ParseError;
+use crate::error::Error;
+use crate::CueSheet;
+use crate::track::Track;
+use crate::track::Index;
+use crate::track::TrackInfo;
+use crate::time::TimeStamp;
+use crate::utils;
+
 macro_rules! fail {
     (token $self: ident, $token: expr) => {
         {
@@ -12,18 +23,6 @@ macro_rules! fail {
         }
     }
 }
-
-use std::collections::VecDeque;
-use std::fmt;
-use crate::error::ParseError;
-use crate::error::Error;
-use crate::CueSheet;
-use crate::track::Track;
-use crate::track::Index;
-use crate::track::TrackInfo;
-use crate::time::TimeStamp;
-use crate::utils;
-
 macro_rules! trim {
     ($s: expr) => {
         $s.trim_matches('"')

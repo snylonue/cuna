@@ -26,13 +26,13 @@ pub struct Error {
 }
 
 impl ParseError {
-    pub fn syntax_error<S1: fmt::Display, S2: fmt::Display>(content: S1, description: S2) -> Self {
+    pub fn syntax_error(content: impl fmt::Display, description: impl fmt::Display) -> Self {
         Self::err_msg(format!("{} : {}", content, description))
     }
-    pub fn unexpected_token<S: fmt::Display>(msg: S) -> Self {
+    pub fn unexpected_token(msg: impl fmt::Display) -> Self {
         Self::syntax_error(msg, "unexpected token")
     }
-    pub fn err_msg<S: fmt::Display>(msg: S) -> Self {
+    pub fn err_msg(msg: impl fmt::Display) -> Self {
         Self::SyntaxError(msg.to_string())
     }
     pub const fn from_error_kind(ek: ErrorKind) -> Self {
