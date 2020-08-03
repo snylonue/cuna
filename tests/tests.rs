@@ -91,6 +91,7 @@ mod cue_sheet {
     #[test]
     fn new() -> Result {
         let sheet = CueSheet::from_utf8_with_bom(CUE)?;
+        assert_eq!(sheet.comments.0[0], "GENRE Pop");
         assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
         assert_eq!(sheet.files.len(), 1);
         assert_eq!(&sheet.files[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");

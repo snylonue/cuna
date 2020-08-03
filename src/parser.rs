@@ -56,12 +56,12 @@ impl<'a> Command<'a> {
             "" => return Err(ParseError::Empty),
             ts => ts,
         };
-        let (content, command) = match utils::token(s).map(|(cont, cmd)| (cont, cmd.to_ascii_lowercase())) {
-            Ok((cont, cmd)) if cmd.as_str() == "rem" => return Ok(Self::Rem(cont)),
+        let (content, command) = match utils::token(s) {
             Ok(ok) => ok,
             Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
         };
-        match command.as_ref() {
+        match command.to_ascii_lowercase().as_ref() {
+            "rem" => Ok(Self::Rem(content)),
             "title" => Ok(Self::Title(trim!(content))),
             "performer" => Ok(Self::Performer(trim!(content))),
             "songwriter" => Ok(Self::Songwriter(trim!(content))),
@@ -162,19 +162,19 @@ impl<'a> Command<'a> {
 impl fmt::Display for Command<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let command = match *self {
-            Command::Rem(c) => format!("REM {}", c),
-            Command::Title(c) => format!(r#"TITLE "{}""#, c),
-            Command::Performer(c) => format!(r#"PERFORMER "{}""#, c),
-            Command::Songwriter(c) => format!(r#"SONGWRITER "{}""#, c),
-            Command::Catalog(c) => format!("CATALOG {}", c),
-            Command::Cdtextfile(c) => format!(r#"CDTEXTFILE "{}""#, c),
-            Command::File(name, tp) => format!(r#"FILE "{}" {}"#, name, tp),
-            Command::Track(id, format) => format!("TRACK {} {}", id, format),
-            Command::Index(id, timestamp) => format!("INDEX {} {}", id, timestamp),
-            Command::Pregap(c) => format!("PREGAP {}", c),
-            Command::Postgap(c) => format!("POSTGAP {}", c),
-            Command::Isrc(c) => format!("ISRC {}", c),
-            Command::Flags(c) => format!("FLAG {}", c),
+            Self::Rem(c) => format!("REM {}", c),
+            Self::Title(c) => format!(r#"TITLE "{}""#, c),
+            Self::Performer(c) => format!(r#"PERFORMER "{}""#, c),
+            Self::Songwriter(c) => format!(r#"SONGWRITER "{}""#, c),
+            Self::Catalog(c) => format!("CATALOG {}", c),
+            Self::Cdtextfile(c) => format!(r#"CDTEXTFILE "{}""#, c),
+            Self::File(name, tp) => format!(r#"FILE "{}" {}"#, name, tp),
+            Self::Track(id, format) => format!("TRACK {} {}", id, format),
+            Self::Index(id, timestamp) => format!("INDEX {} {}", id, timestamp),
+            Self::Pregap(c) => format!("PREGAP {}", c),
+            Self::Postgap(c) => format!("POSTGAP {}", c),
+            Self::Isrc(c) => format!("ISRC {}", c),
+            Self::Flags(c) => format!("FLAG {}", c),
         };
         write!(formatter, "{}", command)
      }
