@@ -10,18 +10,12 @@ use crate::time::TimeStamp;
 use crate::utils;
 
 macro_rules! fail {
-    (token $token: expr, $at: expr) => {
-        {
-            let err = $crate::error::ParseError::unexpected_token($token);
-            return Err($crate::error::Error::new(err, $at));
-        }
+    (token $token: expr) => {
+        return Err($crate::error::ParseError::unexpected_token($token));
     };
-    (syntax $cmd: expr, $msg: expr, $at: expr) => {
-        {
-            let err = $crate::error::ParseError::syntax_error($cmd, $msg);
-            return Err($crate::error::Error::new(err, $at));
-        }
-    }
+    (syntax $cmd: expr, $msg: expr) => {
+        return Err($crate::error::ParseError::syntax_error($cmd, $msg));
+    };
 }
 macro_rules! trim {
     ($s: expr) => {
@@ -95,6 +89,75 @@ impl<'a> Command<'a> {
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
+    pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), ParseError> {
+        match *self {
+            Self::Rem(s) => sheet.comments.push(s.to_owned()),
+            Self::Title(s) => match sheet.last_track_mut() {
+                Some(tk) => tk.push_title(s.to_owned()),
+                None => sheet.header.push_title(s.to_owned()),
+            },
+            Self::Performer(s) => match sheet.last_track_mut() {
+                Some(tk) => tk.push_performer(s.to_owned()),
+                _ => sheet.header.push_performer(s.to_owned()),
+            },
+            Self::Songwriter(s) => match sheet.last_track_mut() {
+                Some(tk) => tk.push_songwriter(s.to_owned()),
+                _ => sheet.header.push_songwriter(s.to_owned()),
+            },
+            Self::Catalog(s) => if sheet.header.catalog.is_none() {
+                sheet.header.catalog = Some(s);
+            } else {
+                fail!(syntax self, "multiple `CATALOG` commands is not allowed")
+            }
+            Self::Cdtextfile(s) => {
+                sheet.header.set_cdtextfile(s.to_owned());
+            },
+            Self::File(name, format) => {
+                sheet.push_file(TrackInfo::new(name.to_owned(), format.to_owned()));
+            },
+            Self::Track(id, format) => {
+                match sheet.last_file_mut() {
+                    Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
+                    None => fail!(syntax self, "Multiple `CATALOG` commands is not allowed")
+                }
+            },
+            Self::Index(id, timestamp) => match sheet.last_track_mut() {
+                Some(tk) if tk.postgap.is_none() => {
+                    tk.push_index(Index::new_unchecked(id, timestamp))
+                },
+                Some(_) => fail!(syntax self, "Command `INDEX` should be before `POSTGAP`"),
+                None => fail!(token "INDEX"),
+            }
+            Self::Pregap(timestamp) => match sheet.last_track_mut() {
+                Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
+                    tk.set_pregep(timestamp.parse()?);
+                },
+                Some(tk) if !tk.index.is_empty() => fail!(syntax self, "Command `PREGAP` should be before `INDEX`"),
+                Some(tk) if tk.pregap.is_some() => fail!(syntax self, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope"),
+                _ => fail!(token "PREGAP"),
+            },
+            Self::Postgap(timestamp) => match sheet.last_track_mut() {
+                Some(tk) if tk.postgap.is_none() => {
+                    tk.set_postgep(timestamp.parse()?);
+                },
+                Some(_) => fail!(syntax self, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope"),
+                None => fail!(token "POSTGAP"),
+            },
+            Self::Isrc(s) => match sheet.last_track_mut() {
+                Some(tk) if tk.isrc.is_none() => {
+                    tk.set_isrc(s.to_owned());
+                },
+                Some(_) => fail!(syntax self, "Multiple `ISRC` commands are not allowed in one `TRACK` scope"),
+                None => fail!(token "ISRC"),
+            },
+            Self::Flags(s) => match sheet.last_track_mut() {
+                Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
+                Some(_) => fail!(syntax self, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope"),
+                None => fail!(token "FLAGS"),
+            }
+        }
+        Ok(())
+    }
 }
 impl fmt::Display for Command<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -130,74 +193,7 @@ impl<'a> Line<'a> {
         self.line
     }
     pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), Error> {
-        let command = self.command();
-        match *command {
-            Command::Rem(s) => sheet.comments.push(s.to_owned()),
-            Command::Title(s) => match sheet.last_track_mut() {
-                Some(tk) => tk.push_title(s.to_owned()),
-                None => sheet.header.push_title(s.to_owned()),
-            },
-            Command::Performer(s) => match sheet.last_track_mut() {
-                Some(tk) => tk.push_performer(s.to_owned()),
-                _ => sheet.header.push_performer(s.to_owned()),
-            },
-            Command::Songwriter(s) => match sheet.last_track_mut() {
-                Some(tk) => tk.push_songwriter(s.to_owned()),
-                _ => sheet.header.push_songwriter(s.to_owned()),
-            },
-            Command::Catalog(s) => if sheet.header.catalog.is_none() {
-                sheet.header.catalog = Some(s);
-            } else {
-                fail!(syntax command, "multiple `CATALOG` commands is not allowed", self.line)
-            }
-            Command::Cdtextfile(s) => {
-                sheet.header.set_cdtextfile(s.to_owned());
-            },
-            Command::File(name, format) => {
-                sheet.push_file(TrackInfo::new(name.to_owned(), format.to_owned()));
-            },
-            Command::Track(id, format) => {
-                match sheet.last_file_mut() {
-                    Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
-                    None => fail!(syntax command, "Multiple `CATALOG` commands is not allowed", self.line)
-                }
-            },
-            Command::Index(id, timestamp) => match sheet.last_track_mut() {
-                Some(tk) if tk.postgap.is_none() => {
-                    tk.push_index(Index::new_unchecked(id, timestamp))
-                },
-                Some(_) => fail!(syntax command, "Command `INDEX` should be before `POSTGAP`", self.line),
-                None => fail!(token "INDEX", self.line),
-            }
-            Command::Pregap(timestamp) => match sheet.last_track_mut() {
-                Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
-                    tk.set_pregep(timestamp.parse()?);
-                },
-                Some(tk) if !tk.index.is_empty() => fail!(syntax command, "Command `PREGAP` should be before `INDEX`", self.line),
-                Some(tk) if tk.pregap.is_some() => fail!(syntax command, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope", self.line),
-                _ => fail!(token "PREGAP", self.line),
-            },
-            Command::Postgap(timestamp) => match sheet.last_track_mut() {
-                Some(tk) if tk.postgap.is_none() => {
-                    tk.set_postgep(timestamp.parse()?);
-                },
-                Some(_) => fail!(syntax command, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope", self.line),
-                None => fail!(token "POSTGAP", self.line),
-            },
-            Command::Isrc(s) => match sheet.last_track_mut() {
-                Some(tk) if tk.isrc.is_none() => {
-                    tk.set_isrc(s.to_owned());
-                },
-                Some(_) => fail!(syntax command, "Multiple `ISRC` commands are not allowed in one `TRACK` scope", self.line),
-                None => fail!(token "ISRC", self.line),
-            },
-            Command::Flags(s) => match sheet.last_track_mut() {
-                Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
-                Some(_) => fail!(syntax command, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope", self.line),
-                None => fail!(token "FLAGS", self.line),
-            }
-        }
-        Ok(())
+        self.command().parse(sheet).map_err(|e| Error::new(e, self.line))
     }
 }
 impl<'a> Parser<'a> {
