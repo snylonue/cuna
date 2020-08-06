@@ -1,4 +1,3 @@
-use std::collections::VecDeque;
 use std::fmt;
 use crate::error::ParseError;
 use crate::error::Error;
@@ -46,7 +45,7 @@ pub struct Line<'a> {
 }
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Parser<'a> {
-    lines: VecDeque<Line<'a>>,
+    lines: Vec<Line<'a>>,
 }
 
 impl<'a> Command<'a> {
@@ -205,7 +204,7 @@ impl<'a> Parser<'a> {
         Ok(Self { lines })
     }
     pub fn current_line(&self) -> Option<&Line> {
-        self.lines.front()
+        self.lines.first()
     }
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
