@@ -47,7 +47,6 @@ pub struct Line<'a> {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Parser<'a> {
     lines: VecDeque<Line<'a>>,
-    state: CueSheet,
 }
 
 impl<'a> Command<'a> {
@@ -198,37 +197,31 @@ impl<'a> Line<'a> {
 }
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Result<Self, Error> {
-        Self::with_state(s, CueSheet::default())
-    }
-    pub fn with_state(s: &'a str, state: CueSheet) -> Result<Self, Error> {
         let lines = s.lines()
             .enumerate()
             .map(|(line, content)| Line::new(content, line + 1))
             .filter(|r| r != &Err(Error::EMPTY))
             .collect::<Result<_, _>>()?;
-        Ok(Self { lines, state })
+        Ok(Self { lines })
     }
     pub fn current_line(&self) -> Option<&Line> {
         self.lines.front()
     }
-    pub fn state(&self) -> &CueSheet {
-        &self.state
+    /// Parses one line and writes to state
+    pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
+        self.parse_next_n_lines(1, state)
     }
-    pub fn parse_next_line(&mut self) -> Result<Line<'_>, Error> {
-        let current_line = match self.lines.pop_front() {
-            Some(cl) => cl,
-            None => return Err(Error::EMPTY),
-        };
-        current_line.parse(&mut self.state)?;
-        Ok(current_line)
+    /// Parses n lines and writes to state
+    /// Each line will be parsed and written to state until an Error is returned
+    pub fn parse_next_n_lines(&mut self, n: usize, state: &mut CueSheet) -> Result<(), Error> {
+        self.lines
+            .drain(0..n)
+            .map(|l| l.parse(state))
+            .collect()
     }
-    pub fn parse(mut self) -> Result<CueSheet, Error> {
-        self.parse_to_end().map(|_| self.state)
-    }
-    pub fn parse_to_end(&mut self) -> Result<(), Error> {
-        let sheet = &mut self.state;
-        self.lines.iter()
-            .map(|l| l.parse(sheet))
+    pub fn parse(self, state: &mut CueSheet) -> Result<(), Error> {
+        self.lines.into_iter()
+            .map(|l| l.parse(state))
             .collect()
     }
 }
