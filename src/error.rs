@@ -54,23 +54,12 @@ impl From<ParseIntError> for ParseError {
 }
 impl PartialEq for ParseError {
     fn eq(&self, other: &Self) -> bool {
-        match self {
-            Self::SyntaxError(msg) => match other {
-                Self::SyntaxError(msg2) => msg == msg2,
-                _ => false
-            },
-            Self::ParserError(e) => match other {
-                Self::ParserError(e2) => e == e2,
-                _ => false,
-            },
-            Self::Empty => match other {
-                Self::Empty => true,
-                _ => false,
-            }
-            Self::IoError(e) => match other {
-                Self::IoError(e2) => e.kind() == e2.kind(),
-                _ => false, 
-            }
+        match (self, other) {
+            (Self::SyntaxError(msg), Self::SyntaxError(msg2)) => msg == msg2,
+            (Self::ParserError(e), Self::ParserError(e2)) => e == e2,
+            (Self::Empty, Self::Empty) => true,
+            (Self::IoError(e), Self::IoError(e2)) => e.kind() == e2.kind(),
+            _ => false,
         }
     }   
 }
