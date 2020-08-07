@@ -1,4 +1,6 @@
 use std::fmt;
+use std::str::Lines;
+use std::iter::Enumerate;
 use crate::error::ParseError;
 use crate::error::Error;
 use crate::CueSheet;
@@ -15,6 +17,13 @@ macro_rules! fail {
     (syntax $cmd: expr, $msg: expr) => {
         return Err($crate::error::ParseError::syntax_error($cmd, $msg));
     };
+    (skip_empty $e: expr) => {
+        match $e {
+            Ok(ok) => ok,
+            Err(e) if e == $crate::error::Error::EMPTY => continue,
+            Err(e) => return Err(e),
+        }
+    }
 }
 macro_rules! trim {
     ($s: expr) => {
@@ -38,15 +47,8 @@ pub enum Command<'a> {
     Isrc(&'a str),
     Flags(&'a str),
 }
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Line<'a> {
-    command: Command<'a>,
-    line: usize,
-}
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Parser<'a> {
-    lines: Vec<Line<'a>>,
-}
+#[derive(Debug, Clone)]
+pub struct Parser<'a>(Enumerate<Lines<'a>>);
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
@@ -177,34 +179,12 @@ impl fmt::Display for Command<'_> {
         write!(formatter, "{}", command)
      }
 }
-impl<'a> Line<'a> {
-    pub fn new(s: &'a str, line: usize) -> Result<Self, Error> {
-        let command = Command::new(s).map_err(
-            |e| Error::new(e, line)
-        )?;
-        Ok( Self { command, line })
-    }
-    pub const fn command(&self) -> &Command {
-        &self.command
-    }
-    pub const fn line(&self) -> usize {
-        self.line
-    }
-    pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), Error> {
-        self.command().parse(sheet).map_err(|e| Error::new(e, self.line))
-    }
-}
 impl<'a> Parser<'a> {
-    pub fn new(s: &'a str) -> Result<Self, Error> {
-        let lines = s.lines()
-            .enumerate()
-            .map(|(line, content)| Line::new(content, line + 1))
-            .filter(|r| r != &Err(Error::EMPTY))
-            .collect::<Result<_, _>>()?;
-        Ok(Self { lines })
+    pub fn new(s: &'a str) -> Self {
+        Self(s.lines().enumerate())
     }
-    pub fn current_line(&self) -> Option<&Line> {
-        self.lines.first()
+    pub fn current_line(&self) -> Option<&str> {
+        self.0.clone().peekable().peek().map(|(_, line)| *line)
     }
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
@@ -213,14 +193,19 @@ impl<'a> Parser<'a> {
     /// Parses n lines and writes to state
     /// Each line will be parsed and written to state until an Error is returned
     pub fn parse_next_n_lines(&mut self, n: usize, state: &mut CueSheet) -> Result<(), Error> {
-        self.lines
-            .drain(0..n)
-            .map(|l| l.parse(state))
-            .collect()
+        for (at, line) in self.0.by_ref().take(n) {
+            let to_error = |e| Error::new(e, at);
+            let command = fail!(skip_empty Command::new(line).map_err(to_error));
+            command.parse(state).map_err(to_error)?;
+        }
+        Ok(())
     }
     pub fn parse(self, state: &mut CueSheet) -> Result<(), Error> {
-        self.lines.into_iter()
-            .map(|l| l.parse(state))
-            .collect()
+        for (at, line) in self.0 {
+            let to_error = |e| Error::new(e, at);
+            let command = fail!(skip_empty Command::new(line).map_err(to_error));
+            command.parse(state).map_err(to_error)?;
+        }
+        Ok(())
     }
 }

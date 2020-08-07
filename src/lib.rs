@@ -80,7 +80,7 @@ impl FromStr for CueSheet {
     /// s must be UTF-8 encoding without BOM header
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut sheet = CueSheet::default();
-        parser::Parser::new(s)?.parse(&mut sheet)?;
+        parser::Parser::new(s).parse(&mut sheet)?;
         Ok(sheet)
     }
 }
