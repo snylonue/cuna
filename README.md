@@ -4,7 +4,23 @@ Another simple cue parser for Rust with [nom](https://github.com/Geal/nom).
 Supports cue files in UTF-8 and UTF-8 with BOM.  
 Current document is not complete and the api is not so easy to use, so [rcue](https://github.com/gyng/rcue) or [libcue.rs](https://github.com/mistydemeo/libcue.rs) (though I can't compile this) may be a better choice.
 
-## performance
+## Usage
+```rust
+use cuna::CueSheet;
+use cuna::error::Error;
+
+fn main() -> Result<(), Error> {
+    let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
+    let cue = CueSheet::open(file)?;
+    assert_eq!(sheet.comments.0[0], "GENRE Pop");
+    assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+    assert_eq!(sheet.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+    assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+
+}
+```
+
+## Performance
 Here's a benchmark with a 42-line cue file(may be outdated).
 ``` rust
 cuna                    time:   [24.431 us 24.577 us 24.722 us]
