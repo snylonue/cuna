@@ -1,5 +1,7 @@
 type Result = std::result::Result<(), cuna::error::Error>;
 
+const CUE: &str = include_str!(r"EGOIST - Departures ～あなたにおくるアイの歌～.cue");
+
 #[cfg(test)]
 mod time {
     use super::*;
@@ -86,8 +88,6 @@ mod cue_sheet {
     use super::*;
     use cuna::CueSheet;
 
-    const CUE: &str = include_str!(r"EGOIST - Departures ～あなたにおくるアイの歌～.cue");
-
     #[test]
     fn new() -> Result {
         let sheet = CueSheet::from_utf8_with_bom(CUE)?;
@@ -96,6 +96,23 @@ mod cue_sheet {
         assert_eq!(sheet.files.len(), 1);
         assert_eq!(&sheet.files[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
         assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+        Ok(())
+    }
+}
+#[cfg(test)]
+mod parser {
+    use super::*;
+    use cuna::parser::Parser;
+    use cuna::CueSheet;
+
+    #[test]
+    fn parse_next_n_lines() -> Result {
+        let mut parser = Parser::new(cuna::trim_utf8_header(CUE));
+        let mut sheet = CueSheet::default();
+        parser.parse_next_n_lines(8, &mut sheet)?;
+        assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+        assert_eq!(&sheet.files[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+        assert!(sheet.files[0].tracks.is_empty());
         Ok(())
     }
 }
