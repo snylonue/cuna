@@ -29,7 +29,7 @@ impl CueSheet {
         Self { header, files, comments }
     }
     pub fn from_utf8_with_bom(s: &str) -> Result<Self, Error> {
-        Ok(s.trim_start_matches('﻿').parse()?) // remove UTF-8 BOM header
+        Ok(trim_utf8_header(s).parse()?) // remove UTF-8 BOM header
     }
     /// Parses a file as a cue sheet
     /// 
@@ -83,4 +83,9 @@ impl FromStr for CueSheet {
         parser::Parser::new(s).parse(&mut sheet)?;
         Ok(sheet)
     }
+}
+
+#[inline]
+pub fn trim_utf8_header(s: &str) -> &str {
+    s.trim_start_matches('﻿')
 }
