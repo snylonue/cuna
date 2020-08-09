@@ -75,6 +75,12 @@ impl CueSheet {
     pub fn push_file(&mut self, track: TrackInfo) {
         self.files.push(track);
     }
+    pub fn first_file(&self) -> Option<&TrackInfo> {
+        self.files.first()
+    }
+    pub fn first_file_mut(&mut self) -> Option<&mut TrackInfo> {
+        self.files.first_mut()
+    }
     pub fn last_file(&self) -> Option<&TrackInfo> {
         self.files.last()
     }
