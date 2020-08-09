@@ -8,9 +8,9 @@ pub mod parser;
 
 use std::str::FromStr;
 use std::fs::File;
-use std::io::Read;
 use std::path::Path;
 use std::io::BufRead;
+use std::io::BufReader;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::header::Header;
@@ -37,9 +37,8 @@ impl CueSheet {
     /// 
     /// **File must use UTF-8 encoding (BOM header will be removed)**
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
-        let mut buf = String::new();
-        file.read_to_string(&mut buf)?;
-        Self::from_utf8_with_bom(&buf)
+        let mut buffer = BufReader::new(file);
+        Self::from_buf_read(&mut buffer)
     }
     /// Opens a file and parses it as a cue sheet
     /// 
@@ -52,7 +51,7 @@ impl CueSheet {
         let mut sheet = Self::default();
         for (at, line) in buf.lines().enumerate() {
             let line = line?;
-            Parser::new(&line)
+            Parser::new(trim_utf8_header(&line))
                 .parse(&mut sheet)
                 .map_err(|mut e| {
                     e.set_pos(at + 1);
