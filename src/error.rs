@@ -75,8 +75,12 @@ impl Error {
     pub const fn kind(&self) -> &ParseError {
         &self.error
     }
+    #[deprecated(note = "Please use Error::pos() instead")]
     pub const fn at(&self) -> &Option<usize> {
         &self.at
+    }
+    pub const fn pos(&self) -> Option<usize> {
+        self.at
     }
 }
 impl fmt::Display for Error {
