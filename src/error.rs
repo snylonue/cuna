@@ -82,6 +82,9 @@ impl Error {
     pub const fn pos(&self) -> Option<usize> {
         self.at
     }
+    pub(crate) fn set_pos(&mut self, pos: usize) {
+        self.at.replace(pos);
+    }
 }
 impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 

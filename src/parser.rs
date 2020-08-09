@@ -194,7 +194,7 @@ impl<'a> Parser<'a> {
     /// Each line will be parsed and written to state until an Error is returned
     pub fn parse_next_n_lines(&mut self, n: usize, state: &mut CueSheet) -> Result<(), Error> {
         for (at, line) in self.0.by_ref().take(n) {
-            let to_error = |e| Error::new(e, at);
+            let to_error = |e| Error::new(e, at + 1);
             let command = fail!(skip_empty Command::new(line).map_err(to_error));
             command.parse(state).map_err(to_error)?;
         }
@@ -202,7 +202,7 @@ impl<'a> Parser<'a> {
     }
     pub fn parse(self, state: &mut CueSheet) -> Result<(), Error> {
         for (at, line) in self.0 {
-            let to_error = |e| Error::new(e, at);
+            let to_error = |e| Error::new(e, at + 1);
             let command = fail!(skip_empty Command::new(line).map_err(to_error));
             command.parse(state).map_err(to_error)?;
         }

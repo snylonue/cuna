@@ -98,6 +98,16 @@ mod cue_sheet {
         assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
         Ok(())
     }
+    #[test]
+    fn from_buf_read() -> Result {
+        let sheet = CueSheet::from_buf_read(&mut CUE.to_string().as_ref())?;
+        assert_eq!(sheet.comments.0[0], "GENRE Pop");
+        assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+        assert_eq!(sheet.files.len(), 1);
+        assert_eq!(sheet.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+        assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+        Ok(())
+    }
 }
 #[cfg(test)]
 mod parser {
