@@ -10,11 +10,13 @@ use std::str::FromStr;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use std::io::BufRead;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::header::Header;
 use crate::comment::Comment;
 use crate::error::Error;
+use crate::parser::Parser;
 
 /// Represents a cue sheet
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
@@ -45,6 +47,19 @@ impl CueSheet {
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
         Self::from_file(&mut file)
+    }
+    pub fn from_buf_read(buf: &mut impl BufRead) -> Result<Self, Error> {
+        let mut sheet = Self::default();
+        for (at, line) in buf.lines().enumerate() {
+            let line = line?;
+            Parser::new(&line)
+                .parse(&mut sheet)
+                .map_err(|mut e| {
+                    e.set_pos(at + 1);
+                    e
+                })?;
+        }
+        Ok(sheet)
     }
     pub fn header(&self) -> &Header {
         &self.header
@@ -80,7 +95,7 @@ impl FromStr for CueSheet {
     /// s must be UTF-8 encoding without BOM header
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut sheet = CueSheet::default();
-        parser::Parser::new(s).parse(&mut sheet)?;
+        Parser::new(s).parse(&mut sheet)?;
         Ok(sheet)
     }
 }
