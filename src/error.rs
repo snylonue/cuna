@@ -12,8 +12,8 @@ pub enum ParseError {
     /// Errors from nom
     #[error("ParserError: {}", .0.description())]
     ParserError(ErrorKind),
-    /// There is nothing to parse
-    #[error("Nothing to parse")]
+    /// There is nothing to parse or reaches eof
+    #[error("Nothing to parse or eof")]
     Empty,
     /// Fails to read a file
     #[error("IoError: {0}")]
