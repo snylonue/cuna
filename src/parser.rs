@@ -58,7 +58,7 @@ impl<'a> Command<'a> {
         };
         let (content, command) = match utils::token(s) {
             Ok(ok) => ok,
-            Err(_) => return Err(ParseError::syntax_error(s, "missing arguments")),
+            Err(_) => fail!(syntax s, "missing arguments"),
         };
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
@@ -67,20 +67,20 @@ impl<'a> Command<'a> {
             "songwriter" => Ok(Self::Songwriter(trim!(content))),
             "catalog" => match utils::number(13)(content) {
                 Ok((_, catalog)) => Ok(Self::Catalog(catalog)),
-                Err(_) => return Err(ParseError::syntax_error(content, "invaild catalog"))
+                Err(_) => fail!(syntax content, "invaild catalog")
             },
             "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
             "file" => match utils::quote_opt(content) {
                 Ok((format, path)) => Ok(Self::File(trim!(path), format.trim())),
-                Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
+                Err(_) => fail!(syntax command, "missing arguments"),
             },
             "track" => match utils::token(content) {
                 Ok((format, id)) => Ok(Self::Track(utils::number(2)(id)?.1, format)),
-                Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
+                Err(_) => fail!(syntax command, "missing arguments"),
             },
             "index" => match utils::token(content) {
                 Ok((timestamp, id)) => Ok(Self::Index(utils::number(2)(id)?.1, timestamp.parse()?)),
-                Err(_) => return Err(ParseError::syntax_error(command, "missing arguments")),
+                Err(_) => fail!(syntax command, "missing arguments"),
             },
             "pregap" => Ok(Self::Pregap(trim!(content))),
             "postgap" => Ok(Self::Postgap(trim!(content))),
