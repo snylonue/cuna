@@ -48,7 +48,7 @@ pub enum Command<'a> {
     Flags(&'a str),
 }
 #[derive(Debug, Clone)]
-pub struct Parser<'a>(Enumerate<Lines<'a>>);
+pub struct Parser<I>(Enumerate<I>);
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
@@ -179,13 +179,15 @@ impl fmt::Display for Command<'_> {
         write!(formatter, "{}", command)
      }
 }
-impl<'a> Parser<'a> {
+impl<'a> Parser<Lines<'a>> {
     pub fn new(s: &'a str) -> Self {
         Self(s.lines().enumerate())
     }
     pub fn current_line(&self) -> Option<&str> {
         self.0.clone().peekable().peek().map(|(_, line)| *line)
     }
+}
+impl<'a, I: Iterator<Item=&'a str>> Parser<I> {
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
@@ -207,5 +209,10 @@ impl<'a> Parser<'a> {
             command.parse(state).map_err(to_error)?;
         }
         Ok(())
+    }
+}
+impl<'a, I: Iterator<Item = &'a str>> From<I> for Parser<I> {
+    fn from(it: I) -> Self {
+        Self(it.enumerate())
     }
 }
