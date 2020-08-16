@@ -9,6 +9,7 @@ use crate::track::Index;
 use crate::track::TrackInfo;
 use crate::time::TimeStamp;
 use crate::utils;
+use crate::trim_utf8_header;
 
 macro_rules! fail {
     (token $token: expr) => {
@@ -187,7 +188,7 @@ impl<'a> Parser<Lines<'a>> {
         self.0.clone().peekable().peek().map(|(_, line)| *line)
     }
 }
-impl<'a, I: Iterator<Item=&'a str>> Parser<I> {
+impl<S: AsRef<str>, I: Iterator<Item = S>> Parser<I> {
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
@@ -197,7 +198,7 @@ impl<'a, I: Iterator<Item=&'a str>> Parser<I> {
     pub fn parse_next_n_lines(&mut self, n: usize, state: &mut CueSheet) -> Result<(), Error> {
         for (at, line) in self.0.by_ref().take(n) {
             let to_error = |e| Error::new(e, at + 1);
-            let command = fail!(skip_empty Command::new(line).map_err(to_error));
+            let command = fail!(skip_empty Command::new(line.as_ref()).map_err(to_error));
             command.parse(state).map_err(to_error)?;
         }
         Ok(())
@@ -205,13 +206,24 @@ impl<'a, I: Iterator<Item=&'a str>> Parser<I> {
     pub fn parse(self, state: &mut CueSheet) -> Result<(), Error> {
         for (at, line) in self.0 {
             let to_error = |e| Error::new(e, at + 1);
-            let command = fail!(skip_empty Command::new(line).map_err(to_error));
+            let command = fail!(skip_empty Command::new(line.as_ref()).map_err(to_error));
             command.parse(state).map_err(to_error)?;
         }
         Ok(())
     }
 }
-impl<'a, I: Iterator<Item = &'a str>> From<I> for Parser<I> {
+impl<S: AsRef<str>, E: Into<ParseError>, I: Iterator<Item = Result<S, E>>> Parser<I> {
+    pub(crate) fn try_parse(self, state: &mut CueSheet) -> Result<(), Error> {
+        for (at, line) in self.0 {
+            let to_error = |e: ParseError| Error::new(e.into(), at + 1);
+            let line = line.map_err(|e| Error::new(e.into(), at + 1))?;
+            let command = fail!(skip_empty Command::new(trim_utf8_header(line.as_ref())).map_err(to_error));
+            command.parse(state).map_err(to_error)?;
+        }
+        Ok(())
+    }
+}
+impl<'a, I: Iterator> From<I> for Parser<I> {
     fn from(it: I) -> Self {
         Self(it.enumerate())
     }

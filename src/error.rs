@@ -82,6 +82,7 @@ impl Error {
     pub const fn pos(&self) -> Option<usize> {
         self.at
     }
+    #[allow(dead_code)]
     pub(crate) fn set_pos(&mut self, pos: usize) {
         self.at.replace(pos);
     }

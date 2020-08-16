@@ -11,7 +11,6 @@ use std::fs::File;
 use std::path::Path;
 use std::io::BufRead;
 use std::io::BufReader;
-use std::iter::once;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::header::Header;
@@ -50,15 +49,8 @@ impl CueSheet {
     }
     pub fn from_buf_read(buf: &mut impl BufRead) -> Result<Self, Error> {
         let mut sheet = Self::default();
-        for (at, line) in buf.lines().enumerate() {
-            let line = line?;
-            Parser::from(once(trim_utf8_header(&line)))
-                .parse(&mut sheet)
-                .map_err(|mut e| {
-                    e.set_pos(at + 1);
-                    e
-                })?;
-        }
+        Parser::from(buf.lines())
+            .try_parse(&mut sheet)?;
         Ok(sheet)
     }
     pub fn header(&self) -> &Header {
