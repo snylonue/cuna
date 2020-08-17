@@ -12,32 +12,24 @@ use cuna::error::Error;
 fn main() -> Result<(), Error> {
     let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     let cue = CueSheet::open(file)?;
-    assert_eq!(sheet.comments.0[0], "GENRE Pop");
-    assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
-    assert_eq!(sheet.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-    assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+    assert_eq!(cue.comments.0[0], "GENRE Pop");
+    assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+    assert_eq!(cue.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+    assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
 
 }
 ```
 
+[documention](https://docs.rs/cuna)
+
 ## Performance
-Here's a benchmark with a 42-line cue file(may be outdated).
-``` rust
-cuna                    time:   [24.431 us 24.577 us 24.722 us]
-                        change: [+29.680% +31.073% +32.504%] (p = 0.00 < 0.05)
-                        Performance has regressed.
-Found 3 outliers among 100 measurements (3.00%)
-  2 (2.00%) high mild
-  1 (1.00%) high severe
-
-rcue                    time:   [94.889 us 95.035 us 95.208 us]
-                        change: [+22.130% +23.267% +24.173%] (p = 0.00 < 0.05)
-                        Performance has regressed.
-Found 6 outliers among 100 measurements (6.00%)
-  4 (4.00%) high mild
-  2 (2.00%) high severe
-
-rcue_no_buf_reader      time:   [3.8906 us 3.9295 us 3.9688 us]
-                        change: [-0.3731% +1.2804% +2.8758%] (p = 0.13 > 0.05)
+Here's a benchmark with a 42-line cue file(may be outdated).  
+Only test CueSheet::from_utf8_with_bom().
+``` 
+cuna                    time:   [21.899 us 21.962 us 22.033 us]
+                        change: [-1.1745% -0.3960% +0.3489%] (p = 0.31 > 0.05)
                         No change in performance detected.
+Found 3 outliers among 100 measurements (3.00%)
+  1 (1.00%) high mild
+  2 (2.00%) high severe
 ```

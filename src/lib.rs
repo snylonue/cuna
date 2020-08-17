@@ -36,6 +36,18 @@ impl CueSheet {
     /// Parses a file as a cue sheet
     /// 
     /// **File must use UTF-8 encoding (BOM header will be removed)**
+    ///
+    /// ```rust
+    /// use cuna::CueSheet;
+    /// use cuna::error::Error;
+    ///
+    /// let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
+    /// let cue = CueSheet::open(file).unwrap();
+    /// assert_eq!(cue.comments.0[0], "GENRE Pop");
+    /// assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+    /// assert_eq!(cue.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+    /// assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+    /// ```
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
         let mut buffer = BufReader::new(file);
         Self::from_buf_read(&mut buffer)
