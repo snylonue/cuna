@@ -184,7 +184,7 @@ impl<'a> Parser<'a> {
         Self(s.lines().enumerate())
     }
     pub fn current_line(&self) -> Option<&str> {
-        self.0.clone().peekable().peek().map(|(_, line)| *line)
+        self.0.clone().next().map(|(_, s)| s)
     }
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
