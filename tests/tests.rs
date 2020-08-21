@@ -116,10 +116,19 @@ mod parser {
     use cuna::CueSheet;
 
     #[test]
+    fn current_line() {
+        let mut parser = Parser::new(cuna::trim_utf8_header(CUE));
+        let mut sheet = CueSheet::default();
+        assert_eq!(parser.current_line(), Some("REM GENRE Pop"));
+        let _ = parser.parse_next_n_lines(5, &mut sheet);
+        assert_eq!(parser.current_line(), Some(r#"TITLE "Departures ～あなたにおくるアイの歌～""#));
+    }
+    #[test]
     fn parse_next_n_lines() -> Result {
         let mut parser = Parser::new(cuna::trim_utf8_header(CUE));
         let mut sheet = CueSheet::default();
         parser.parse_next_n_lines(8, &mut sheet)?;
+        assert_eq!(parser.current_line(), Some("  TRACK 01 AUDIO"));
         assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
         assert_eq!(&sheet.files[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
         assert!(sheet.files[0].tracks.is_empty());
