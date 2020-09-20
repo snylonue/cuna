@@ -113,12 +113,12 @@ mod cue_sheet {
 mod parser {
     use super::*;
     use cuna::parser::Parser;
-    use cuna::CueSheet;
+    use cuna::Cuna;
 
     #[test]
     fn current_line() {
         let mut parser = Parser::new(cuna::trim_utf8_header(CUE));
-        let mut sheet = CueSheet::default();
+        let mut sheet = Cuna::default();
         assert_eq!(parser.current_line(), Some("REM GENRE Pop"));
         let _ = parser.parse_next_n_lines(5, &mut sheet);
         assert_eq!(parser.current_line(), Some(r#"TITLE "Departures ～あなたにおくるアイの歌～""#));
@@ -126,7 +126,7 @@ mod parser {
     #[test]
     fn parse_next_n_lines() -> Result {
         let mut parser = Parser::new(cuna::trim_utf8_header(CUE));
-        let mut sheet = CueSheet::default();
+        let mut sheet = Cuna::default();
         parser.parse_next_n_lines(8, &mut sheet)?;
         assert_eq!(parser.current_line(), Some("  TRACK 01 AUDIO"));
         assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));

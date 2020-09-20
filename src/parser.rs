@@ -3,7 +3,7 @@ use std::str::Lines;
 use std::iter::Enumerate;
 use crate::error::ParseError;
 use crate::error::Error;
-use crate::CueSheet;
+use crate::Cuna;
 use crate::track::Track;
 use crate::track::Index;
 use crate::track::TrackInfo;
@@ -89,7 +89,7 @@ impl<'a> Command<'a> {
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
-    pub fn parse(&self, sheet: &mut CueSheet) -> Result<(), ParseError> {
+    pub fn parse(&self, sheet: &mut Cuna) -> Result<(), ParseError> {
         match *self {
             Self::Rem(s) => sheet.comments.push(s.to_owned()),
             Self::Title(s) => match sheet.last_track_mut() {
@@ -187,12 +187,12 @@ impl<'a> Parser<'a> {
         self.0.clone().next().map(|(_, s)| s)
     }
     /// Parses one line and writes to state
-    pub fn parse_next_line(&mut self, state: &mut CueSheet) -> Result<(), Error> {
+    pub fn parse_next_line(&mut self, state: &mut Cuna) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
     }
     /// Parses n lines and writes to state
     /// Each line will be parsed and written to state until an Error is returned
-    pub fn parse_next_n_lines(&mut self, n: usize, state: &mut CueSheet) -> Result<(), Error> {
+    pub fn parse_next_n_lines(&mut self, n: usize, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref().take(n) {
             let to_error = |e| Error::new(e, at + 1);
             let command = fail!(skip_empty Command::new(line).map_err(to_error));
@@ -200,7 +200,7 @@ impl<'a> Parser<'a> {
         }
         Ok(())
     }
-    pub fn parse(self, state: &mut CueSheet) -> Result<(), Error> {
+    pub fn parse(self, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0 {
             let to_error = |e| Error::new(e, at + 1);
             let command = fail!(skip_empty Command::new(line).map_err(to_error));
