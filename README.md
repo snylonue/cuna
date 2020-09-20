@@ -12,9 +12,9 @@ use cuna::error::Error;
 fn main() -> Result<(), Error> {
     let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     let cue = CueSheet::open(file)?;
-    assert_eq!(cue.comments.0[0], "GENRE Pop");
+    assert_eq!(cue.comments[0], "GENRE Pop");
     assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
-    assert_eq!(cue.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+    assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
     assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
 
 }

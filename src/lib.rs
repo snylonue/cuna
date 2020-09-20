@@ -11,6 +11,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::ops::Index;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::header::Header;
@@ -43,9 +44,9 @@ impl CueSheet {
     ///
     /// let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     /// let cue = CueSheet::open(file).unwrap();
-    /// assert_eq!(cue.comments.0[0], "GENRE Pop");
+    /// assert_eq!(cue.comments[0], "GENRE Pop");
     /// assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
-    /// assert_eq!(cue.last_file().unwrap().name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+    /// assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
     /// assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
     /// ```
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
@@ -114,6 +115,17 @@ impl FromStr for CueSheet {
         let mut sheet = CueSheet::default();
         Parser::new(s).parse(&mut sheet)?;
         Ok(sheet)
+    }
+}
+impl Index<usize> for CueSheet {
+    type Output = TrackInfo;
+
+    /// # Panics
+    /// 
+    /// panics if index out of range
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.files[index]
     }
 }
 

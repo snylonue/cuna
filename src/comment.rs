@@ -1,4 +1,5 @@
 use std::iter::FromIterator;
+use std::ops::Index;
 use crate::utils;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
@@ -29,5 +30,13 @@ impl IntoIterator for Comment {
     
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+impl Index<usize> for Comment {
+    type Output = String;
+
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
