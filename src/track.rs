@@ -175,3 +175,21 @@ impl TrackInfo {
         self.tracks.push(track)
     }
 }
+impl IntoIterator for TrackInfo {
+    type Item = Track;
+
+    type IntoIter = <Vec<Track> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.tracks.into_iter()
+    }
+}
+impl<'a> IntoIterator for &'a TrackInfo {
+    type Item = &'a Track;
+
+    type IntoIter = std::slice::Iter<'a, Track>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.tracks.iter()
+    }
+}
