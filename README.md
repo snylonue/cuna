@@ -24,7 +24,7 @@ fn main() -> Result<(), Error> {
 
 ## Performance
 Here's a benchmark with a 42-line cue file(may be outdated).  
-Only test Cuna::from_utf8_with_bom().
+Only test Cuna::from_utf8_with_bom() with i5-7300HQ.
 ``` 
 cuna                    time:   [21.899 us 21.962 us 22.033 us]
                         change: [-1.1745% -0.3960% +0.3489%] (p = 0.31 > 0.05)
