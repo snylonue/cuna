@@ -4,6 +4,8 @@ use std::path::Path;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::ops::Index;
+use std::iter::Flatten;
+use std::slice::Iter;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::header::Header;
@@ -97,6 +99,9 @@ impl Cuna {
     }
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
         self.last_file_mut().map(|tk| tk.last_track_mut()).flatten()
+    }
+    pub fn tracks(&self) -> Flatten<Iter<TrackInfo>> {
+        self.files.iter().flatten()
     }
 }
 impl FromStr for Cuna {

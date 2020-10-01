@@ -108,6 +108,14 @@ mod cue_sheet {
         assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
         Ok(())
     }
+    #[test]
+    fn tracks() -> Result {
+        let sheet = CueSheet::from_utf8_with_bom(CUE)?;
+        let mut  tracks = sheet.tracks();
+        let track = tracks.nth(2).unwrap(); // nth() is zero-indexed
+        assert_eq!(track.title().unwrap()[0], "Departures ~あなたにおくるアイの歌~ (TV Edit)");
+        Ok(())
+    }
 }
 #[cfg(test)]
 mod parser {
