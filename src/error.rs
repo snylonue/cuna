@@ -42,8 +42,8 @@ impl ParseError {
 impl<I> From<nom::Err<(I, ErrorKind)>> for ParseError {
     fn from(e: nom::Err<(I, ErrorKind)>) -> Self {
         match e {
-            nom::Err::Incomplete(_) => unreachable!(),
             nom::Err::Error((_, ek)) | nom::Err::Failure((_, ek)) => Self::from_error_kind(ek),
+            nom::Err::Incomplete(_) => unreachable!(),
         }
     }
 }

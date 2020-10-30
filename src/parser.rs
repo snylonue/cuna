@@ -183,6 +183,12 @@ impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Self {
         Self(s.lines().enumerate())
     }
+    pub fn from_lines(lines: Lines<'a>) -> Self {
+        Self(lines.enumerate())
+    }
+    pub fn set_lines(&mut self, lines: Lines<'a>) {
+        self.0 = lines.enumerate();
+    }
     pub fn current_line(&self) -> Option<&str> {
         self.0.clone().next().map(|(_, s)| s)
     }
