@@ -119,7 +119,7 @@ impl<'a> Command<'a> {
             }
             Self::Track(id, format) => match sheet.last_file_mut() {
                 Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
-                None => fail!(syntax self, "Multiple `CATALOG` commands is not allowed"),
+                None => fail!(token "TRACK"),
             },
             Self::Index(id, timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
