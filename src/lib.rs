@@ -1,17 +1,17 @@
-pub mod utils;
-pub mod error;
-pub mod time;
-pub mod header;
-pub mod track;
 pub mod comment;
-pub mod parser;
 pub mod cuna;
+pub mod error;
+pub mod header;
+pub mod parser;
+pub mod time;
+pub mod track;
+pub mod utils;
 
 pub use crate::cuna::Cuna;
 pub use crate::cuna::Cuna as CueSheet;
 
 /// Returns a str without UTF-8 bom
-/// 
+///
 /// ```rust
 /// let s = "﻿Hana is so cute"; // A str with BOM
 /// assert_ne!(s, "Hana is so cute");

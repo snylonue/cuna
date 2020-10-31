@@ -1,14 +1,14 @@
-use std::fmt;
-use std::str::Lines;
-use std::iter::Enumerate;
-use crate::error::ParseError;
 use crate::error::Error;
-use crate::Cuna;
-use crate::track::Track;
-use crate::track::Index;
-use crate::track::TrackInfo;
+use crate::error::ParseError;
 use crate::time::TimeStamp;
+use crate::track::Index;
+use crate::track::Track;
+use crate::track::TrackInfo;
 use crate::utils;
+use crate::Cuna;
+use std::fmt;
+use std::iter::Enumerate;
+use std::str::Lines;
 
 macro_rules! fail {
     (token $token: expr) => {
@@ -23,7 +23,7 @@ macro_rules! fail {
             Err(e) if e == $crate::error::Error::EMPTY => continue,
             Err(e) => return Err(e),
         }
-    }
+    };
 }
 macro_rules! trim {
     ($s: expr) => {
@@ -67,7 +67,7 @@ impl<'a> Command<'a> {
             "songwriter" => Ok(Self::Songwriter(trim!(content))),
             "catalog" => match utils::number(13)(content) {
                 Ok((_, catalog)) => Ok(Self::Catalog(catalog)),
-                Err(_) => fail!(syntax content, "invaild catalog")
+                Err(_) => fail!(syntax content, "invaild catalog"),
             },
             "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
             "file" => match utils::quote_opt(content) {
@@ -104,57 +104,67 @@ impl<'a> Command<'a> {
                 Some(tk) => tk.push_songwriter(s.to_owned()),
                 _ => sheet.header.push_songwriter(s.to_owned()),
             },
-            Self::Catalog(s) => if sheet.header.catalog.is_none() {
-                sheet.header.catalog = Some(s);
-            } else {
-                fail!(syntax self, "multiple `CATALOG` commands is not allowed")
+            Self::Catalog(s) => {
+                if sheet.header.catalog.is_none() {
+                    sheet.header.catalog = Some(s);
+                } else {
+                    fail!(syntax self, "multiple `CATALOG` commands is not allowed")
+                }
             }
             Self::Cdtextfile(s) => {
                 sheet.header.set_cdtextfile(s.to_owned());
-            },
+            }
             Self::File(name, format) => {
                 sheet.push_file(TrackInfo::new(name.to_owned(), format.to_owned()));
-            },
-            Self::Track(id, format) => {
-                match sheet.last_file_mut() {
-                    Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
-                    None => fail!(syntax self, "Multiple `CATALOG` commands is not allowed")
-                }
+            }
+            Self::Track(id, format) => match sheet.last_file_mut() {
+                Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
+                None => fail!(syntax self, "Multiple `CATALOG` commands is not allowed"),
             },
             Self::Index(id, timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
                     tk.push_index(Index::new_unchecked(id, timestamp))
-                },
+                }
                 Some(_) => fail!(syntax self, "Command `INDEX` should be before `POSTGAP`"),
                 None => fail!(token "INDEX"),
-            }
+            },
             Self::Pregap(timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
                     tk.set_pregep(timestamp.parse()?);
-                },
-                Some(tk) if !tk.index.is_empty() => fail!(syntax self, "Command `PREGAP` should be before `INDEX`"),
-                Some(tk) if tk.pregap.is_some() => fail!(syntax self, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope"),
+                }
+                Some(tk) if !tk.index.is_empty() => {
+                    fail!(syntax self, "Command `PREGAP` should be before `INDEX`")
+                }
+                Some(tk) if tk.pregap.is_some() => {
+                    fail!(syntax self, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope")
+                }
                 _ => fail!(token "PREGAP"),
             },
             Self::Postgap(timestamp) => match sheet.last_track_mut() {
                 Some(tk) if tk.postgap.is_none() => {
                     tk.set_postgep(timestamp.parse()?);
-                },
-                Some(_) => fail!(syntax self, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope"),
+                }
+                Some(_) => {
+                    fail!(syntax self, "Multiple `POSTGAP` commands are not allowed in one `TRACK` scope")
+                }
                 None => fail!(token "POSTGAP"),
             },
             Self::Isrc(s) => match sheet.last_track_mut() {
                 Some(tk) if tk.isrc.is_none() => {
                     tk.set_isrc(s.to_owned());
-                },
-                Some(_) => fail!(syntax self, "Multiple `ISRC` commands are not allowed in one `TRACK` scope"),
+                }
+                Some(_) => {
+                    fail!(syntax self, "Multiple `ISRC` commands are not allowed in one `TRACK` scope")
+                }
                 None => fail!(token "ISRC"),
             },
             Self::Flags(s) => match sheet.last_track_mut() {
                 Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
-                Some(_) => fail!(syntax self, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope"),
+                Some(_) => {
+                    fail!(syntax self, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope")
+                }
                 None => fail!(token "FLAGS"),
-            }
+            },
         }
         Ok(())
     }
@@ -177,7 +187,7 @@ impl fmt::Display for Command<'_> {
             Self::Flags(c) => format!("FLAG {}", c),
         };
         write!(formatter, "{}", command)
-     }
+    }
 }
 impl<'a> Parser<'a> {
     pub fn new(s: &'a str) -> Self {

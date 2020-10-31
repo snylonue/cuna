@@ -1,6 +1,6 @@
+use crate::utils;
 use std::iter::FromIterator;
 use std::ops::Index;
-use crate::utils;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Comment(pub Vec<String>);
@@ -8,11 +8,7 @@ pub struct Comment(pub Vec<String>);
 impl Comment {
     pub fn new(s: &str) -> Self {
         s.lines()
-            .filter_map(
-                |s| utils::keyword("REM")(s)
-                    .ok()
-                    .map(|(c, _)| c)
-            )
+            .filter_map(|s| utils::keyword("REM")(s).ok().map(|(c, _)| c))
             .collect()
     }
     pub fn push(&mut self, s: String) {
@@ -27,7 +23,7 @@ impl<S: Into<String>> FromIterator<S> for Comment {
 impl IntoIterator for Comment {
     type Item = String;
     type IntoIter = <Vec<String> as IntoIterator>::IntoIter;
-    
+
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }

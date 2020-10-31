@@ -1,8 +1,8 @@
-use thiserror::Error;
 use nom::error::ErrorKind;
 use std::fmt;
-use std::num::ParseIntError;
 use std::io;
+use std::num::ParseIntError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum ParseError {
@@ -21,7 +21,8 @@ pub enum ParseError {
 }
 #[derive(Debug, Error)]
 pub struct Error {
-    #[source] error: ParseError,
+    #[source]
+    error: ParseError,
     at: Option<usize>,
 }
 
@@ -61,13 +62,16 @@ impl PartialEq for ParseError {
             (Self::IoError(e), Self::IoError(e2)) => e.kind() == e2.kind(),
             _ => false,
         }
-    }   
+    }
 }
 impl Error {
     pub const EMPTY: Self = Self::from_parse_error(ParseError::Empty);
 
     pub const fn new(error: ParseError, at: usize) -> Self {
-        Self { error, at: Some(at) }
+        Self {
+            error,
+            at: Some(at),
+        }
     }
     pub const fn from_parse_error(error: ParseError) -> Self {
         Self { error, at: None }
@@ -87,7 +91,7 @@ impl Error {
     }
 }
 impl fmt::Display for Error {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result { 
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.at {
             Some(l) => write!(formatter, "{} at line {}", self.error, l),
             None => write!(formatter, "{}", self.error),

@@ -92,28 +92,49 @@ mod cue_sheet {
     fn new() -> Result {
         let sheet = CueSheet::from_utf8_with_bom(CUE)?;
         assert_eq!(sheet.comments[0], "GENRE Pop");
-        assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+        assert_eq!(
+            sheet.header.title,
+            Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()])
+        );
         assert_eq!(sheet.files.len(), 1);
-        assert_eq!(sheet[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-        assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+        assert_eq!(
+            sheet[0].name,
+            "EGOIST - Departures ～あなたにおくるアイの歌～.flac"
+        );
+        assert_eq!(
+            sheet.last_track().unwrap().performer(),
+            Some(&vec!["EGOIST".to_owned()])
+        );
         Ok(())
     }
     #[test]
     fn from_buf_read() -> Result {
         let sheet = CueSheet::from_buf_read(&mut CUE.to_string().as_ref())?;
         assert_eq!(sheet.comments[0], "GENRE Pop");
-        assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+        assert_eq!(
+            sheet.header.title,
+            Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()])
+        );
         assert_eq!(sheet.files.len(), 1);
-        assert_eq!(sheet[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-        assert_eq!(sheet.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+        assert_eq!(
+            sheet[0].name,
+            "EGOIST - Departures ～あなたにおくるアイの歌～.flac"
+        );
+        assert_eq!(
+            sheet.last_track().unwrap().performer(),
+            Some(&vec!["EGOIST".to_owned()])
+        );
         Ok(())
     }
     #[test]
     fn tracks() -> Result {
         let sheet = CueSheet::from_utf8_with_bom(CUE)?;
-        let mut  tracks = sheet.tracks();
+        let mut tracks = sheet.tracks();
         let track = tracks.nth(2).unwrap(); // nth() is zero-indexed
-        assert_eq!(track.title().unwrap()[0], "Departures ~あなたにおくるアイの歌~ (TV Edit)");
+        assert_eq!(
+            track.title().unwrap()[0],
+            "Departures ~あなたにおくるアイの歌~ (TV Edit)"
+        );
         Ok(())
     }
 }
@@ -129,7 +150,10 @@ mod parser {
         let mut sheet = Cuna::default();
         assert_eq!(parser.current_line(), Some("REM GENRE Pop"));
         let _ = parser.parse_next_n_lines(5, &mut sheet);
-        assert_eq!(parser.current_line(), Some(r#"TITLE "Departures ～あなたにおくるアイの歌～""#));
+        assert_eq!(
+            parser.current_line(),
+            Some(r#"TITLE "Departures ～あなたにおくるアイの歌～""#)
+        );
     }
     #[test]
     fn parse_next_n_lines() -> Result {
@@ -137,8 +161,14 @@ mod parser {
         let mut sheet = Cuna::default();
         parser.parse_next_n_lines(8, &mut sheet)?;
         assert_eq!(parser.current_line(), Some("  TRACK 01 AUDIO"));
-        assert_eq!(sheet.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
-        assert_eq!(sheet[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
+        assert_eq!(
+            sheet.header.title,
+            Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()])
+        );
+        assert_eq!(
+            sheet[0].name,
+            "EGOIST - Departures ～あなたにおくるアイの歌～.flac"
+        );
         assert!(sheet[0].tracks.is_empty());
         Ok(())
     }

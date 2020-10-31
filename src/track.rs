@@ -1,13 +1,13 @@
-use nom::sequence::tuple;
-use nom::sequence::delimited;
-use nom::bytes::complete::tag_no_case as tag;
-use nom::combinator::rest;
-use nom::combinator::map_res;
-use nom::combinator::map;
-use std::str::FromStr;
+use crate::error::ParseError;
 use crate::time::TimeStamp;
 use crate::utils;
-use crate::error::ParseError;
+use nom::bytes::complete::tag_no_case as tag;
+use nom::combinator::map;
+use nom::combinator::map_res;
+use nom::combinator::rest;
+use nom::sequence::delimited;
+use nom::sequence::tuple;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Copy)]
 pub struct Index {
@@ -25,7 +25,7 @@ pub struct Track {
     pub performer: Option<Vec<String>>,
     pub songwriter: Option<Vec<String>>,
     pub isrc: Option<String>,
-    pub flags: Option<Vec<String>>
+    pub flags: Option<Vec<String>>,
 }
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct TrackInfo {
@@ -62,19 +62,23 @@ impl FromStr for Index {
         let (_, index) = map(
             tuple((
                 delimited(utils::keyword("INDEX"), utils::number(2), tag(" ")),
-                map_res(rest, TimeStamp::from_str)
+                map_res(rest, TimeStamp::from_str),
             )),
-            |(id, begin_time)| Self::new_unchecked(id, begin_time)
+            |(id, begin_time)| Self::new_unchecked(id, begin_time),
         )(s)?;
         Ok(index)
     }
 }
 impl Track {
     pub(crate) fn new_unchecked(id: u8, format: String) -> Self {
-        Self { id, format, ..Self::default() }
+        Self {
+            id,
+            format,
+            ..Self::default()
+        }
     }
     /// Constructs a new Track
-    /// 
+    ///
     /// # Panics
     ///
     /// Panics if id > 99
@@ -104,19 +108,25 @@ impl Track {
         self.title.as_ref()
     }
     pub fn push_title(&mut self, title: String) {
-        self.title.get_or_insert_with(|| Vec::with_capacity(1)).push(title)
+        self.title
+            .get_or_insert_with(|| Vec::with_capacity(1))
+            .push(title)
     }
     pub fn performer(&self) -> Option<&Vec<String>> {
         self.performer.as_ref()
     }
     pub fn push_performer(&mut self, performer: String) {
-        self.performer.get_or_insert_with(|| Vec::with_capacity(1)).push(performer)
+        self.performer
+            .get_or_insert_with(|| Vec::with_capacity(1))
+            .push(performer)
     }
     pub fn songwriter(&self) -> Option<&Vec<String>> {
         self.songwriter.as_ref()
     }
     pub fn push_songwriter(&mut self, songwriter: String) {
-        self.songwriter.get_or_insert_with(|| Vec::with_capacity(1)).push(songwriter)
+        self.songwriter
+            .get_or_insert_with(|| Vec::with_capacity(1))
+            .push(songwriter)
     }
     pub fn push_index(&mut self, index: Index) {
         self.index.push(index)
@@ -137,13 +147,18 @@ impl Track {
         self.flags.as_ref()
     }
     pub fn push_flag(&mut self, flag: String) {
-        self.flags.get_or_insert_with(|| Vec::with_capacity(1)).push(flag)
+        self.flags
+            .get_or_insert_with(|| Vec::with_capacity(1))
+            .push(flag)
     }
     pub fn push_flags<F, S>(&mut self, flags: F)
-        where F: IntoIterator<Item = S>,
-            S: Into<String>
+    where
+        F: IntoIterator<Item = S>,
+        S: Into<String>,
     {
-        self.flags.get_or_insert_with(Vec::new).extend(flags.into_iter().map(Into::into))
+        self.flags
+            .get_or_insert_with(Vec::new)
+            .extend(flags.into_iter().map(Into::into))
     }
 }
 impl FromStr for Track {
@@ -160,7 +175,11 @@ impl TrackInfo {
         Self::with_tracks(name, format, Vec::new())
     }
     pub const fn with_tracks(name: String, format: String, tracks: Vec<Track>) -> Self {
-        Self { name, format, tracks }
+        Self {
+            name,
+            format,
+            tracks,
+        }
     }
     /// Returns the last Track or None if self.tracks is empty
     pub fn last_track(&self) -> Option<&Track> {
@@ -171,7 +190,7 @@ impl TrackInfo {
         self.tracks.last_mut()
     }
     /// Appends an element to the back of self.tracks
-    pub fn push_track(&mut self , track: Track) {
+    pub fn push_track(&mut self, track: Track) {
         self.tracks.push(track)
     }
 }

@@ -1,17 +1,17 @@
-use std::str::FromStr;
-use std::fs::File;
-use std::path::Path;
-use std::io::BufRead;
-use std::io::BufReader;
-use std::ops::Index;
-use std::iter::Flatten;
-use std::slice::Iter;
-use crate::track::Track;
-use crate::track::TrackInfo;
-use crate::header::Header;
 use crate::comment::Comment;
 use crate::error::Error;
+use crate::header::Header;
 use crate::parser::Parser;
+use crate::track::Track;
+use crate::track::TrackInfo;
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::iter::Flatten;
+use std::ops::Index;
+use std::path::Path;
+use std::slice::Iter;
+use std::str::FromStr;
 
 /// Represents a cue sheet
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
@@ -23,13 +23,17 @@ pub struct Cuna {
 
 impl Cuna {
     pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
-        Self { header, files, comments }
+        Self {
+            header,
+            files,
+            comments,
+        }
     }
     pub fn from_utf8_with_bom(s: &str) -> Result<Self, Error> {
         Ok(crate::trim_utf8_header(s).parse()?) // remove UTF-8 BOM header
     }
     /// Parses a file as a cue sheet
-    /// 
+    ///
     /// **File must use UTF-8 encoding (BOM header will be removed)**
     ///
     /// ```rust
@@ -48,7 +52,7 @@ impl Cuna {
         Self::from_buf_read(&mut buffer)
     }
     /// Opens a file and parses it as a cue sheet
-    /// 
+    ///
     /// **Only UTF-8 encoding is supported (BOM will be removed)**
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
@@ -118,7 +122,7 @@ impl Index<usize> for Cuna {
     type Output = TrackInfo;
 
     /// # Panics
-    /// 
+    ///
     /// panics if index out of range
     #[inline]
     fn index(&self, index: usize) -> &Self::Output {
