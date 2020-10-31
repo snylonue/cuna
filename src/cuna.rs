@@ -49,7 +49,7 @@ impl Cuna {
     }
     /// Opens a file and parses it as a cue sheet
     /// 
-    /// **File must use UTF-8 encoding (BOM header will be removed)**
+    /// **Only UTF-8 encoding is supported (BOM will be removed)**
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
         Self::from_file(&mut file)

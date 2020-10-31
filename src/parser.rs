@@ -206,6 +206,8 @@ impl<'a> Parser<'a> {
         }
         Ok(())
     }
+    /// Parses all the lines and writes to state
+    /// Each line will be parsed and written to state until an Error is returned
     pub fn parse(self, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0 {
             let to_error = |e| Error::new(e, at + 1);
