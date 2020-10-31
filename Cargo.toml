@@ -14,4 +14,3 @@ repository = "https://github.com/snylonue/cuna"
 [dependencies]
 nom = "5"
 thiserror = "1"
-num-traits = "0.2"

@@ -9,7 +9,6 @@ use nom::combinator::verify;
 use nom::sequence::delimited;
 use nom::sequence::terminated;
 use nom::IResult;
-use num_traits::Num;
 use std::str::FromStr;
 
 pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
@@ -28,6 +27,6 @@ pub fn token(content: &str) -> IResult<&str, &str> {
     terminated(take_until(" "), tag(" "))(content)
 }
 /// Takes digits and recognizes them as an n digit
-pub fn number<N: Num + FromStr>(n: usize) -> impl Fn(&str) -> IResult<&str, N> {
+pub fn number<N: FromStr>(n: usize) -> impl Fn(&str) -> IResult<&str, N> {
     move |i: &str| map_res(verify(digit0, |d: &str| d.len() == n), |d: &str| d.parse())(i)
 }
