@@ -40,11 +40,11 @@ impl ParseError {
         Self::ParserError(ek)
     }
 }
-impl<I> From<nom::Err<(I, ErrorKind)>> for ParseError {
-    fn from(e: nom::Err<(I, ErrorKind)>) -> Self {
+impl<I> From<nom::Err<nom::error::Error<I>>> for ParseError {
+    fn from(e: nom::Err<nom::error::Error<I>>) -> Self {
         match e {
-            nom::Err::Error((_, ek)) | nom::Err::Failure((_, ek)) => Self::from_error_kind(ek),
-            nom::Err::Incomplete(_) => unreachable!(),
+            nom::Err::Error(e) | nom::Err::Failure(e) => Self::from_error_kind(e.code),
+            _ => unreachable!(),
         }
     }
 }

@@ -12,5 +12,5 @@ repository = "https://github.com/snylonue/cuna"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nom = "5"
+nom = "6"
 thiserror = "1"
