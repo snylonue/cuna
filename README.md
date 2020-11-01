@@ -2,7 +2,7 @@
 
 Another simple cue parser for Rust with [nom](https://github.com/Geal/nom).  
 Supports cue files in UTF-8 and UTF-8 with BOM.  
-Current document is not complete and the api is not so easy to use, so [rcue](https://github.com/gyng/rcue) or [libcue.rs](https://github.com/mistydemeo/libcue.rs) (though I can't compile this) may be a better choice.
+Current document is not complete and the api is not so easy to use, so [rcue](https://github.com/gyng/rcue) or [libcue.rs (though I can't compile this) ](https://github.com/mistydemeo/libcue.rs)  may be a better choice.
 
 ## Usage
 ```rust
@@ -20,7 +20,7 @@ fn main() -> Result<(), Error> {
 }
 ```
 
-[documention](https://docs.rs/cuna)
+## [Documention](https://docs.rs/cuna)
 
 ## Performance
 Here's a benchmark with a 42-line cue file(may be outdated).  
