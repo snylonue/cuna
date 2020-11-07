@@ -60,16 +60,24 @@ impl Cuna {
     }
     pub fn from_buf_read(buf: &mut impl BufRead) -> Result<Self, Error> {
         let mut sheet = Self::default();
-        for (at, line) in buf.lines().enumerate() {
-            let line = line?;
-            Parser::new(crate::trim_utf8_header(&line))
-                .parse(&mut sheet)
-                .map_err(|mut e| {
-                    e.set_pos(at + 1);
-                    e
-                })?;
+        let mut buffer = String::new();
+        let mut at = 0;
+        loop {
+            match buf.read_line(&mut buffer) {
+                Ok(0) => break Ok(sheet),
+                Ok(_) => {
+                    Parser::new(crate::trim_utf8_header(&buffer))
+                        .parse(&mut sheet)
+                        .map_err(|mut e| {
+                            e.set_pos(at + 1);
+                            e
+                        })?;
+                }
+                Err(e) => break Err(Error::from_with_at(e, at + 1)),
+            }
+            at += 1;
+            buffer.clear();
         }
-        Ok(sheet)
     }
     pub fn header(&self) -> &Header {
         &self.header
