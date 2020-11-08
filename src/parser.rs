@@ -218,8 +218,8 @@ impl<'a> Parser<'a> {
     }
     /// Parses all the lines and writes to state
     /// Each line will be parsed and written to state until an Error is returned
-    pub fn parse(self, state: &mut Cuna) -> Result<(), Error> {
-        for (at, line) in self.0 {
+    pub fn parse(&mut self, state: &mut Cuna) -> Result<(), Error> {
+        for (at, line) in self.0.by_ref() {
             let to_error = |e| Error::new(e, at + 1);
             let command = fail!(skip_empty Command::new(line).map_err(to_error));
             command.parse(state).map_err(to_error)?;
