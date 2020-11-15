@@ -73,12 +73,6 @@ impl Error {
             at: Some(at),
         }
     }
-    pub(crate) fn from_with_at(error: impl Into<ParseError>, at: usize) -> Self {
-        Self {
-            error: error.into(),
-            at: Some(at),
-        }
-    }
     pub const fn from_parse_error(error: ParseError) -> Self {
         Self { error, at: None }
     }

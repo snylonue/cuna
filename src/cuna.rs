@@ -61,7 +61,7 @@ impl Cuna {
     pub fn from_buf_read(buf: &mut impl BufRead) -> Result<Self, Error> {
         let mut sheet = Self::default();
         let mut buffer = String::new();
-        let mut at = 0;
+        let mut at = 1;
         loop {
             match buf.read_line(&mut buffer) {
                 Ok(0) => break Ok(sheet),
@@ -69,11 +69,11 @@ impl Cuna {
                     Parser::new(crate::trim_utf8_header(&buffer))
                         .parse(&mut sheet)
                         .map_err(|mut e| {
-                            e.set_pos(at + 1);
+                            e.set_pos(at);
                             e
                         })?;
                 }
-                Err(e) => break Err(Error::from_with_at(e, at + 1)),
+                Err(e) => break Err(Error::new(e.into(), at)),
             }
             at += 1;
             buffer.clear();
