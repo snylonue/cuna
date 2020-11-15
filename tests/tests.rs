@@ -135,6 +135,8 @@ mod cue_sheet {
             track.title().unwrap()[0],
             "Departures ~あなたにおくるアイの歌~ (TV Edit)"
         );
+        assert_eq!(track, &sheet[0][2]);
+        assert_eq!(track[0], "INDEX 01 08:04:33".parse()?);
         Ok(())
     }
 }

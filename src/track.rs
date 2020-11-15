@@ -7,6 +7,7 @@ use nom::combinator::map_res;
 use nom::combinator::rest;
 use nom::sequence::delimited;
 use nom::sequence::tuple;
+use std::ops;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Copy)]
@@ -169,6 +170,13 @@ impl FromStr for Track {
         Ok(Self::new_unchecked(id, tp.to_owned()))
     }
 }
+impl ops::Index<usize> for Track {
+    type Output = Index;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.index[index]
+    }
+}
 impl TrackInfo {
     /// Constructs a new TrackInfo
     pub const fn new(name: String, format: String) -> Self {
@@ -210,5 +218,12 @@ impl<'a> IntoIterator for &'a TrackInfo {
 
     fn into_iter(self) -> Self::IntoIter {
         self.tracks.iter()
+    }
+}
+impl ops::Index<usize> for TrackInfo {
+    type Output = Track;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.tracks[index]
     }
 }
