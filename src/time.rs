@@ -87,7 +87,8 @@ impl FromStr for TimeStamp {
             number(2),
         ))(s)
         .map_err(|_| ParseError::syntax_error(s, "invalid timestamp"))?;
-        Ok(Self::new(minutes, seconds, frames))
+        Ok(Self::from_msf_opt(minutes, seconds, frames)
+            .ok_or_else(|| ParseError::syntax_error(s, "invalid timestamp"))?)
     }
 }
 impl fmt::Display for TimeStamp {

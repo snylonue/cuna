@@ -24,7 +24,7 @@ mod time {
         assert_eq!("61:29:73".parse::<TimeStamp>()?, TimeStamp::new(61, 29, 73));
         assert!("xd".parse::<TimeStamp>().is_err());
         assert!("6:772:11".parse::<TimeStamp>().is_err());
-        assert!("6:72:111".parse::<TimeStamp>().is_err());
+        assert!("6:72:81".parse::<TimeStamp>().is_err());
         Ok(())
     }
     #[test]
