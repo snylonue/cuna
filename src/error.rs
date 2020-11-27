@@ -3,7 +3,7 @@ use std::io;
 use std::num::ParseIntError;
 use thiserror::Error;
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Debug, Error, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum InvalidArgument {
     #[error("invalid timestamp")]
     InvalidTimestamp,
@@ -58,7 +58,7 @@ impl PartialEq for ParseError {
             (Self::InvalidArgument(t), Self::InvalidArgument(t2)) => t == t2,
             (Self::SyntaxError(msg), Self::SyntaxError(msg2)) => msg == msg2,
             (Self::UnexpectedToken(msg), Self::UnexpectedToken(msg2)) => msg == msg2,
-            (Self::IoError(e), Self::IoError(e2)) => e.kind() == e2.kind(),
+            (Self::IoError(_), Self::IoError(_)) => true,
             _ => false,
         }
     }

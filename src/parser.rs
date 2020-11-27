@@ -72,16 +72,16 @@ impl<'a> Command<'a> {
             },
             "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
             "file" => match utils::quote_opt(content) {
-                Ok(("", _)) | Err(_) => Err(InvalidArgument::MissingArgument.into()),
+                Ok(("", _)) | Err(_) => Err(InvalidArgument::MissingArgument)?,
                 Ok((format, path)) => Ok(Self::File(trim!(path), format.trim())),
             },
             "track" => match utils::token(content) {
                 Ok((format, id)) => Ok(Self::Track(parse_id(id)?, format)),
-                Err(_) => Err(InvalidArgument::MissingArgument.into()),
+                Err(_) => Err(InvalidArgument::MissingArgument)?,
             },
             "index" => match utils::token(content) {
                 Ok((timestamp, id)) => Ok(Self::Index(parse_id(id)?, timestamp.parse()?)),
-                Err(_) => Err(InvalidArgument::MissingArgument.into()),
+                Err(_) => Err(InvalidArgument::MissingArgument)?,
             },
             "pregap" => Ok(Self::Pregap(trim!(content))),
             "postgap" => Ok(Self::Postgap(trim!(content))),
