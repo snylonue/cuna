@@ -1,4 +1,4 @@
-use crate::error::ParseError;
+use crate::error::InvalidArgument;
 use crate::time::TimeStamp;
 use crate::utils;
 use nom::bytes::complete::tag_no_case as tag;
@@ -57,7 +57,7 @@ impl Index {
     }
 }
 impl FromStr for Index {
-    type Err = ParseError;
+    type Err = InvalidArgument;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (_, index) = map(
@@ -66,7 +66,8 @@ impl FromStr for Index {
                 map_res(rest, TimeStamp::from_str),
             )),
             |(id, begin_time)| Self::new_unchecked(id, begin_time),
-        )(s)?;
+        )(s)
+        .map_err(|_| InvalidArgument::InvalidId)?;
         Ok(index)
     }
 }
@@ -163,10 +164,11 @@ impl Track {
     }
 }
 impl FromStr for Track {
-    type Err = ParseError;
+    type Err = InvalidArgument;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (tp, id) = delimited(utils::keyword("TRACK"), utils::number(2), tag(" "))(s)?;
+        let (tp, id) = delimited(utils::keyword("TRACK"), utils::number(2), tag(" "))(s)
+            .map_err(|_| InvalidArgument::InvalidId)?;
         Ok(Self::new_unchecked(id, tp.to_owned()))
     }
 }

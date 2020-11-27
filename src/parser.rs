@@ -1,4 +1,5 @@
 use crate::error::Error;
+use crate::error::InvalidArgument;
 use crate::error::ParseError;
 use crate::time::TimeStamp;
 use crate::track::Index;
@@ -71,16 +72,16 @@ impl<'a> Command<'a> {
             },
             "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
             "file" => match utils::quote_opt(content) {
-                Ok(("", _)) | Err(_) => fail!(syntax command, "missing arguments"),
+                Ok(("", _)) | Err(_) => Err(InvalidArgument::MissingArgument.into()),
                 Ok((format, path)) => Ok(Self::File(trim!(path), format.trim())),
             },
             "track" => match utils::token(content) {
-                Ok((format, id)) => Ok(Self::Track(utils::number(2)(id)?.1, format)),
-                Err(_) => fail!(syntax command, "missing arguments"),
+                Ok((format, id)) => Ok(Self::Track(parse_id(id)?, format)),
+                Err(_) => Err(InvalidArgument::MissingArgument.into()),
             },
             "index" => match utils::token(content) {
-                Ok((timestamp, id)) => Ok(Self::Index(utils::number(2)(id)?.1, timestamp.parse()?)),
-                Err(_) => fail!(syntax command, "missing arguments"),
+                Ok((timestamp, id)) => Ok(Self::Index(parse_id(id)?, timestamp.parse()?)),
+                Err(_) => Err(InvalidArgument::MissingArgument.into()),
             },
             "pregap" => Ok(Self::Pregap(trim!(content))),
             "postgap" => Ok(Self::Postgap(trim!(content))),
@@ -226,4 +227,10 @@ impl<'a> Parser<'a> {
         }
         Ok(())
     }
+}
+
+fn parse_id(s: &str) -> Result<u8, InvalidArgument> {
+    Ok(utils::number(2)(s)
+        .map_err(|_| InvalidArgument::InvalidId)?
+        .1)
 }

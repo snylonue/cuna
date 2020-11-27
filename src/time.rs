@@ -1,4 +1,4 @@
-use crate::error::ParseError;
+use crate::error::InvalidArgument;
 use crate::utils::number;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -78,7 +78,7 @@ impl TimeStamp {
     }
 }
 impl FromStr for TimeStamp {
-    type Err = ParseError;
+    type Err = InvalidArgument;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (_, (minutes, seconds, frames)) = tuple((
@@ -86,9 +86,9 @@ impl FromStr for TimeStamp {
             terminated(number(2), tag(":")),
             number(2),
         ))(s)
-        .map_err(|_| ParseError::syntax_error(s, "invalid timestamp"))?;
+        .map_err(|_| InvalidArgument::InvalidTimestamp)?;
         Ok(Self::from_msf_opt(minutes, seconds, frames)
-            .ok_or_else(|| ParseError::syntax_error(s, "invalid timestamp"))?)
+            .ok_or_else(|| InvalidArgument::InvalidTimestamp)?)
     }
 }
 impl fmt::Display for TimeStamp {

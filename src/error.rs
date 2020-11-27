@@ -1,17 +1,26 @@
-use nom::error::ErrorKind;
 use std::fmt;
 use std::io;
 use std::num::ParseIntError;
 use thiserror::Error;
 
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum InvalidArgument {
+    #[error("invalid timestamp")]
+    InvalidTimestamp,
+    #[error("missing arguments")]
+    MissingArgument,
+    #[error("invalid id")]
+    InvalidId,
+}
 #[derive(Debug, Error)]
 pub enum ParseError {
     /// There is something wrong in the cue sheet
     #[error("SyntaxError: {0}")]
     SyntaxError(String),
-    /// Errors from nom
-    #[error("ParserError: {}", .0.description())]
-    ParserError(ErrorKind),
+    #[error("UnexpetedToken: {0}")]
+    UnexpectedToken(String),
+    #[error(transparent)]
+    InvalidArgument(#[from] InvalidArgument),
     /// There is nothing to parse or reaches eof
     #[error("Nothing to parse or eof")]
     Empty,
@@ -28,24 +37,13 @@ pub struct Error {
 
 impl ParseError {
     pub fn syntax_error(content: impl fmt::Display, description: impl fmt::Display) -> Self {
-        Self::err_msg(format!("{} : {}", content, description))
+        Self::err_msg(format!("{}: {}", content, description))
     }
     pub fn unexpected_token(msg: impl fmt::Display) -> Self {
-        Self::syntax_error(msg, "unexpected token")
+        Self::UnexpectedToken(msg.to_string())
     }
     pub fn err_msg(msg: impl fmt::Display) -> Self {
         Self::SyntaxError(msg.to_string())
-    }
-    pub const fn from_error_kind(ek: ErrorKind) -> Self {
-        Self::ParserError(ek)
-    }
-}
-impl<I> From<nom::Err<nom::error::Error<I>>> for ParseError {
-    fn from(e: nom::Err<nom::error::Error<I>>) -> Self {
-        match e {
-            nom::Err::Error(e) | nom::Err::Failure(e) => Self::from_error_kind(e.code),
-            _ => unreachable!(),
-        }
     }
 }
 impl From<ParseIntError> for ParseError {
@@ -56,9 +54,10 @@ impl From<ParseIntError> for ParseError {
 impl PartialEq for ParseError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::SyntaxError(msg), Self::SyntaxError(msg2)) => msg == msg2,
-            (Self::ParserError(e), Self::ParserError(e2)) => e == e2,
             (Self::Empty, Self::Empty) => true,
+            (Self::InvalidArgument(t), Self::InvalidArgument(t2)) => t == t2,
+            (Self::SyntaxError(msg), Self::SyntaxError(msg2)) => msg == msg2,
+            (Self::UnexpectedToken(msg), Self::UnexpectedToken(msg2)) => msg == msg2,
             (Self::IoError(e), Self::IoError(e2)) => e.kind() == e2.kind(),
             _ => false,
         }
