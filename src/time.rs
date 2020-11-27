@@ -45,7 +45,7 @@ impl TimeStamp {
         }
     }
     pub const fn minutes(&self) -> u32 {
-        self.seconds / 60 as u32
+        self.seconds / 60
     }
     pub const fn seconds(&self) -> u32 {
         self.seconds % 60
@@ -88,7 +88,7 @@ impl FromStr for TimeStamp {
         ))(s)
         .map_err(|_| InvalidArgument::InvalidTimestamp)?;
         Ok(Self::from_msf_opt(minutes, seconds, frames)
-            .ok_or_else(|| InvalidArgument::InvalidTimestamp)?)
+            .ok_or(InvalidArgument::InvalidTimestamp)?)
     }
 }
 impl fmt::Display for TimeStamp {
