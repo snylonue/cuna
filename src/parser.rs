@@ -71,8 +71,8 @@ impl<'a> Command<'a> {
             },
             "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
             "file" => match utils::quote_opt(content) {
+                Ok(("", _)) | Err(_) => fail!(syntax command, "missing arguments"),
                 Ok((format, path)) => Ok(Self::File(trim!(path), format.trim())),
-                Err(_) => fail!(syntax command, "missing arguments"),
             },
             "track" => match utils::token(content) {
                 Ok((format, id)) => Ok(Self::Track(utils::number(2)(id)?.1, format)),
