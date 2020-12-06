@@ -87,10 +87,11 @@ mod command {
 mod cue_sheet {
     use super::*;
     use cuna::CueSheet;
+    use std::str::FromStr;
 
     #[test]
     fn new() -> Result {
-        let sheet = CueSheet::from_utf8_with_bom(CUE)?;
+        let sheet = CueSheet::from_str(CUE)?;
         assert_eq!(sheet.comments[0], "GENRE Pop");
         assert_eq!(
             sheet.header.title,
@@ -128,7 +129,7 @@ mod cue_sheet {
     }
     #[test]
     fn tracks() -> Result {
-        let sheet = CueSheet::from_utf8_with_bom(CUE)?;
+        let sheet = CueSheet::from_str(CUE)?;
         let mut tracks = sheet.tracks();
         let track = tracks.nth(2).unwrap(); // nth() is zero-indexed
         assert_eq!(

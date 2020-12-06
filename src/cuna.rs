@@ -29,6 +29,7 @@ impl Cuna {
             comments,
         }
     }
+    #[deprecated = "use Cuna::from_str() instead"]
     pub fn from_utf8_with_bom(s: &str) -> Result<Self, Error> {
         Ok(crate::trim_utf8_header(s).parse()?) // remove UTF-8 BOM header
     }
@@ -119,10 +120,9 @@ impl Cuna {
 impl FromStr for Cuna {
     type Err = Error;
 
-    /// s must be UTF-8 encoding without BOM header
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut sheet = Cuna::default();
-        Parser::new(s).parse(&mut sheet)?;
+        Parser::new(crate::trim_utf8_header(s)).parse(&mut sheet)?;
         Ok(sheet)
     }
 }
