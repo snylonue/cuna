@@ -2,6 +2,7 @@ use std::fmt;
 use std::io;
 use std::num::ParseIntError;
 use thiserror::Error;
+use std::mem::discriminant;
 
 #[derive(Debug, Error, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum InvalidArgument {
@@ -54,12 +55,8 @@ impl From<ParseIntError> for ParseError {
 impl PartialEq for ParseError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Empty, Self::Empty) => true,
             (Self::InvalidArgument(t), Self::InvalidArgument(t2)) => t == t2,
-            (Self::SyntaxError(msg), Self::SyntaxError(msg2)) => msg == msg2,
-            (Self::UnexpectedToken(msg), Self::UnexpectedToken(msg2)) => msg == msg2,
-            (Self::IoError(_), Self::IoError(_)) => true,
-            _ => false,
+            _ => discriminant(self) == discriminant(other)
         }
     }
 }
