@@ -2,9 +2,13 @@
 
 Another simple cue parser for Rust with [nom](https://github.com/Geal/nom).  
 Supports cue files in UTF-8 and UTF-8 with BOM.  
-Current document is not complete and the api is not so easy to use, so [rcue](https://github.com/gyng/rcue) or [libcue.rs (though I can't compile this) ](https://github.com/mistydemeo/libcue.rs)  may be a better choice.
+Current document is not complete and the api is a bit complex, so [rcue](https://github.com/gyng/rcue) or [libcue.rs (though I can't compile this)](https://github.com/mistydemeo/libcue.rs) may be a better choice.
 
 ## Usage
+cuna 0.5.0 has introduced some incompatible changes, see the [documention](https://docs.rs/cuna) before you upgrade (if you actually wanted).
+
+If you find something not follow the cue standard or confusing, please open an issue.
+
 ```rust
 use cuna::Cuna;
 use cuna::error::Error;
