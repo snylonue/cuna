@@ -181,6 +181,7 @@ impl fmt::Display for Command<'_> {
     }
 }
 impl<'a> Parser<'a> {
+    /// Returns a new Parser
     pub fn new(s: &'a str) -> Self {
         Self(s.lines().enumerate())
     }
@@ -190,6 +191,13 @@ impl<'a> Parser<'a> {
     pub fn set_lines(&mut self, lines: Lines<'a>) {
         self.0 = lines.enumerate();
     }
+    /// Returns the current line to be parsed
+    /// ```rust
+    /// use cuna::parser::Parser;
+    /// let line = r#"TITLE "HELLO WORLD オリジナル・サウンドトラック""#;
+    /// let parser = Parser::new(line);
+    /// assert_eq!(parser.current_line(), Some(line));
+    /// ```
     pub fn current_line(&self) -> Option<&str> {
         self.0.clone().next().map(|(_, s)| s)
     }
