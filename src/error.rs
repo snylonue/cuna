@@ -1,8 +1,8 @@
 use std::fmt;
 use std::io;
+use std::mem::discriminant;
 use std::num::ParseIntError;
 use thiserror::Error;
-use std::mem::discriminant;
 
 #[derive(Debug, Error, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum InvalidArgument {
@@ -56,7 +56,7 @@ impl PartialEq for ParseError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::InvalidArgument(t), Self::InvalidArgument(t2)) => t == t2,
-            _ => discriminant(self) == discriminant(other)
+            _ => discriminant(self) == discriminant(other),
         }
     }
 }

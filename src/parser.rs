@@ -26,11 +26,6 @@ macro_rules! fail {
         }
     };
 }
-macro_rules! trim {
-    ($s: expr) => {
-        $s.trim_matches('"')
-    };
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Command<'a> {
@@ -63,17 +58,17 @@ impl<'a> Command<'a> {
         };
         match command.to_ascii_lowercase().as_ref() {
             "rem" => Ok(Self::Rem(content)),
-            "title" => Ok(Self::Title(trim!(content))),
-            "performer" => Ok(Self::Performer(trim!(content))),
-            "songwriter" => Ok(Self::Songwriter(trim!(content))),
+            "title" => Ok(Self::Title(trimq(content))),
+            "performer" => Ok(Self::Performer(trimq(content))),
+            "songwriter" => Ok(Self::Songwriter(trimq(content))),
             "catalog" => match utils::number(13)(content) {
                 Ok((_, catalog)) => Ok(Self::Catalog(catalog)),
                 Err(_) => fail!(syntax content, "invaild catalog"),
             },
-            "cdtextfile" => Ok(Self::Cdtextfile(trim!(content))),
+            "cdtextfile" => Ok(Self::Cdtextfile(trimq(content))),
             "file" => match utils::quote_opt(content) {
                 Ok(("", _)) | Err(_) => Err(InvalidArgument::MissingArgument.into()),
-                Ok((format, path)) => Ok(Self::File(trim!(path), format.trim())),
+                Ok((format, path)) => Ok(Self::File(trimq(path), format.trim())),
             },
             "track" => match utils::token(content) {
                 Ok((format, id)) => Ok(Self::Track(parse_id(id)?, format)),
@@ -83,10 +78,10 @@ impl<'a> Command<'a> {
                 Ok((timestamp, id)) => Ok(Self::Index(parse_id(id)?, timestamp.parse()?)),
                 Err(_) => Err(InvalidArgument::MissingArgument.into()),
             },
-            "pregap" => Ok(Self::Pregap(trim!(content))),
-            "postgap" => Ok(Self::Postgap(trim!(content))),
-            "isrc" => Ok(Self::Isrc(trim!(content))),
-            "flag" => Ok(Self::Flags(trim!(content))),
+            "pregap" => Ok(Self::Pregap(trimq(content))),
+            "postgap" => Ok(Self::Postgap(trimq(content))),
+            "isrc" => Ok(Self::Isrc(trimq(content))),
+            "flag" => Ok(Self::Flags(trimq(content))),
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
@@ -105,13 +100,10 @@ impl<'a> Command<'a> {
                 Some(tk) => tk.push_songwriter(s.to_owned()),
                 _ => sheet.header.push_songwriter(s.to_owned()),
             },
-            Self::Catalog(s) => {
-                if sheet.header.catalog.is_none() {
-                    sheet.header.catalog = Some(s);
-                } else {
-                    fail!(syntax self, "multiple `CATALOG` commands is not allowed")
-                }
-            }
+            Self::Catalog(s) => match sheet.header.catalog {
+                None => sheet.header.catalog = Some(s),
+                _ => fail!(syntax self, "multiple `CATALOG` commands is not allowed"),
+            },
             Self::Cdtextfile(s) => {
                 sheet.header.set_cdtextfile(s.to_owned());
             }
@@ -133,12 +125,10 @@ impl<'a> Command<'a> {
                 Some(tk) if tk.index.is_empty() && tk.pregap.is_none() => {
                     tk.set_pregep(timestamp.parse()?);
                 }
-                Some(tk) if !tk.index.is_empty() => {
-                    fail!(syntax self, "Command `PREGAP` should be before `INDEX`")
-                }
                 Some(tk) if tk.pregap.is_some() => {
                     fail!(syntax self, "Multiple `PREGAP` commands are not allowed in one `TRACK` scope")
                 }
+                Some(_) => fail!(syntax self, "Command `PREGAP` should be before `INDEX`"),
                 _ => fail!(token "PREGAP"),
             },
             Self::Postgap(timestamp) => match sheet.last_track_mut() {
@@ -233,4 +223,8 @@ fn parse_id(s: &str) -> Result<u8, InvalidArgument> {
     Ok(utils::number(2)(s)
         .map_err(|_| InvalidArgument::InvalidId)?
         .1)
+}
+#[inline(always)]
+fn trimq(s: &str) -> &str {
+    s.trim_matches('"')
 }
