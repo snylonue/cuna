@@ -162,22 +162,21 @@ impl<'a> Command<'a> {
 }
 impl fmt::Display for Command<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let command = match *self {
-            Self::Rem(c) => format!("REM {}", c),
-            Self::Title(c) => format!(r#"TITLE "{}""#, c),
-            Self::Performer(c) => format!(r#"PERFORMER "{}""#, c),
-            Self::Songwriter(c) => format!(r#"SONGWRITER "{}""#, c),
-            Self::Catalog(c) => format!("CATALOG {}", c),
-            Self::Cdtextfile(c) => format!(r#"CDTEXTFILE "{}""#, c),
-            Self::File(name, tp) => format!(r#"FILE "{}" {}"#, name, tp),
-            Self::Track(id, format) => format!("TRACK {} {}", id, format),
-            Self::Index(id, timestamp) => format!("INDEX {} {}", id, timestamp),
-            Self::Pregap(c) => format!("PREGAP {}", c),
-            Self::Postgap(c) => format!("POSTGAP {}", c),
-            Self::Isrc(c) => format!("ISRC {}", c),
-            Self::Flags(c) => format!("FLAG {}", c),
-        };
-        write!(formatter, "{}", command)
+        match *self {
+            Self::Rem(c) => write!(formatter, "REM {}", c),
+            Self::Title(c) => write!(formatter, r#"TITLE "{}""#, c),
+            Self::Performer(c) => write!(formatter, r#"PERFORMER "{}""#, c),
+            Self::Songwriter(c) => write!(formatter, r#"SONGWRITER "{}""#, c),
+            Self::Catalog(c) => write!(formatter, "CATALOG {}", c),
+            Self::Cdtextfile(c) => write!(formatter, r#"CDTEXTFILE "{}""#, c),
+            Self::File(name, tp) => write!(formatter, r#"FILE "{}" {}"#, name, tp),
+            Self::Track(id, format) => write!(formatter, "TRACK {} {}", id, format),
+            Self::Index(id, timestamp) => write!(formatter, "INDEX {} {}", id, timestamp),
+            Self::Pregap(c) => write!(formatter, "PREGAP {}", c),
+            Self::Postgap(c) => write!(formatter, "POSTGAP {}", c),
+            Self::Isrc(c) => write!(formatter, "ISRC {}", c),
+            Self::Flags(c) => write!(formatter, "FLAG {}", c),
+        }
     }
 }
 impl<'a> Parser<'a> {
