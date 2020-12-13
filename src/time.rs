@@ -44,6 +44,15 @@ impl TimeStamp {
             frames: (frames % 75) as u8,
         }
     }
+    /// Constructs a new TimeStamp with frames
+    /// ``` rust
+    /// use cuna::time::TimeStamp;
+    /// let ts = TimeStamp::from_frames(54153);
+    /// assert_eq!(ts, TimeStamp::new(12, 2, 3));
+    /// ``` 
+    pub const fn from_frames(frms: u32) -> Self {
+        Self::from_msf(0, 0, frms)
+    }
     pub const fn minutes(&self) -> u32 {
         self.seconds / 60
     }
