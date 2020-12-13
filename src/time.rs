@@ -38,6 +38,14 @@ impl TimeStamp {
     /// Constructs a new TimeStamp with minutes, seconds and frames
     ///
     /// Seconds and frames will be carried over into a larger unit if too big
+    ///
+    /// ``` rust
+    /// use cuna::time::TimeStamp;
+    /// let ts = TimeStamp::from_msf(11, 61, 78);
+    /// assert_eq!(ts, TimeStamp::new(12, 2, 3));
+    /// ```
+    /// Make sure `minutes * 60 + seconds + (frames / 75)` will not be larger than u32::MAX
+    /// or overflow will happen
     pub const fn from_msf(minutes: u32, seconds: u32, frames: u32) -> Self {
         Self {
             seconds: minutes * 60 + seconds + (frames / 75),
@@ -49,7 +57,7 @@ impl TimeStamp {
     /// use cuna::time::TimeStamp;
     /// let ts = TimeStamp::from_frames(54153);
     /// assert_eq!(ts, TimeStamp::new(12, 2, 3));
-    /// ``` 
+    /// ```
     pub const fn from_frames(frms: u32) -> Self {
         Self::from_msf(0, 0, frms)
     }
@@ -79,9 +87,11 @@ impl TimeStamp {
         assert!(frames < 75);
         self.frames = frames as u8;
     }
+    /// Returns the total number of whole seconds contained by this `TimeStamp`
     pub const fn as_seconds(&self) -> u32 {
         self.seconds
     }
+    /// Returns the total number of whole frames contained by this `TimeStamp`
     pub const fn as_frames(&self) -> u32 {
         self.as_seconds() * 75 + self.frames()
     }

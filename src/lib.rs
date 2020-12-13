@@ -13,7 +13,7 @@ pub use crate::cuna::Cuna as CueSheet;
 /// Returns a str without UTF-8 bom
 ///
 /// ```rust
-/// let s = "﻿Hana is so cute"; // A str with BOM
+/// let s = "﻿Hana is so cute"; // An str with BOM
 /// assert_ne!(s, "Hana is so cute");
 /// assert_eq!(cuna::trim_utf8_header(s), "Hana is so cute");
 /// ```

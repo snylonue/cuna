@@ -14,6 +14,8 @@ use std::slice::Iter;
 use std::str::FromStr;
 
 /// Represents a cue sheet
+///
+/// See [`parser::Parser`](crate::parser::Parser) to deal with errors when parsing
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Cuna {
     pub header: Header,
@@ -35,7 +37,14 @@ impl Cuna {
     }
     /// Parses a file as a cue sheet
     ///
-    /// **File must use UTF-8 encoding (BOM header will be removed)**
+    /// **Only UTF-8 encoding is supported (BOM header will be removed)**
+    pub fn from_file(file: &mut File) -> Result<Self, Error> {
+        let mut buffer = BufReader::new(file);
+        Self::from_buf_read(&mut buffer)
+    }
+    /// Opens a file and parses it as a cue sheet
+    ///
+    /// **Only UTF-8 encoding is supported (BOM will be removed)**
     ///
     /// ```rust
     /// use cuna::Cuna;
@@ -48,13 +57,6 @@ impl Cuna {
     /// assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
     /// assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
     /// ```
-    pub fn from_file(file: &mut File) -> Result<Self, Error> {
-        let mut buffer = BufReader::new(file);
-        Self::from_buf_read(&mut buffer)
-    }
-    /// Opens a file and parses it as a cue sheet
-    ///
-    /// **Only UTF-8 encoding is supported (BOM will be removed)**
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
         Self::from_file(&mut file)
@@ -95,24 +97,31 @@ impl Cuna {
     pub fn push_file(&mut self, track: TrackInfo) {
         self.files.push(track);
     }
+    /// Returns the first, usually the only `FILE` field in the cue sheet
     pub fn first_file(&self) -> Option<&TrackInfo> {
         self.files.first()
     }
+    /// The mutable version of [`Cuna::first_file()`](Cuna::first_file)
     pub fn first_file_mut(&mut self) -> Option<&mut TrackInfo> {
         self.files.first_mut()
     }
+    /// Returns the last, usually the only `FILE` field in the cue sheet
     pub fn last_file(&self) -> Option<&TrackInfo> {
         self.files.last()
     }
+    /// The mutable version of [`Cuna::last_file()`](Cuna::last_file)
     pub fn last_file_mut(&mut self) -> Option<&mut TrackInfo> {
         self.files.last_mut()
     }
+    /// Returns the last `TRACK` field which appears in the cue sheet
     pub fn last_track(&self) -> Option<&Track> {
         self.last_file().map(|tk| tk.last_track()).flatten()
     }
+    /// The mutable version of [`Cuna::last_track()`](Cuna::last_track)
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
         self.last_file_mut().map(|tk| tk.last_track_mut()).flatten()
     }
+    /// An iterator over the `TRACK`s in all the `FILE`s
     pub fn tracks(&self) -> Flatten<Iter<TrackInfo>> {
         self.files.iter().flatten()
     }
@@ -120,6 +129,12 @@ impl Cuna {
 impl FromStr for Cuna {
     type Err = Error;
 
+    /// Parses an str as cue sheet
+    /// ```rust
+    /// use std::str::FromStr;
+    /// use cuna::Cuna;
+    /// let sheet = Cuna::from_str("REM a cue sheet").unwrap();
+    /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut sheet = Cuna::default();
         Parser::new(crate::trim_utf8_header(s)).parse(&mut sheet)?;
