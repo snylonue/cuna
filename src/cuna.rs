@@ -24,6 +24,7 @@ pub struct Cuna {
 }
 
 impl Cuna {
+    #[deprecated = "This method will be changed soon"]
     pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
         Self {
             header,
