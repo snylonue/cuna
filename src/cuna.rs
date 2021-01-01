@@ -24,8 +24,15 @@ pub struct Cuna {
 }
 
 impl Cuna {
-    #[deprecated = "This method will be changed soon"]
+    #[deprecated = "This method will be changed soon, use Cuna::with_parts() instead"]
     pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
+        Self {
+            header,
+            files,
+            comments,
+        }
+    }
+    pub const fn with_parts(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
         Self {
             header,
             files,
