@@ -14,3 +14,10 @@ repository = "https://github.com/snylonue/cuna"
 [dependencies]
 nom = "6"
 thiserror = "1"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "cuna"
+harness = false

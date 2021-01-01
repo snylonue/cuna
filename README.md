@@ -37,3 +37,5 @@ Found 3 outliers among 100 measurements (3.00%)
   1 (1.00%) high mild
   2 (2.00%) high severe
 ```
+
+You can run `cargo bench` for more exact data.
