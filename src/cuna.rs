@@ -63,7 +63,7 @@ impl Cuna {
     /// assert_eq!(cue.comments[0], "GENRE Pop");
     /// assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
     /// assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-    /// assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+    /// assert_eq!(cue[0][0].performer(), Some(&vec!["EGOIST".to_owned()]));
     /// ```
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;

@@ -19,7 +19,7 @@ fn main() -> Result<(), Error> {
     assert_eq!(cue.comments[0], "GENRE Pop");
     assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
     assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-    assert_eq!(cue.last_track().unwrap().performer(), Some(&vec!["EGOIST".to_owned()]));
+    assert_eq!(cue[0][0].performer(), Some(&vec!["EGOIST".to_owned()]));
     Ok(())
 }
 ```
@@ -27,7 +27,7 @@ fn main() -> Result<(), Error> {
 ## [Documention](https://docs.rs/cuna)
 
 ## Performance
-Here's a benchmark with a 42-line cue file(may be outdated).  
+Here's a benchmark with a 42-line cue file (may be outdated).  
 Only test Cuna::from_utf8_with_bom() with i5-7300HQ.
 ``` 
 cuna                    time:   [21.899 us 21.962 us 22.033 us]
