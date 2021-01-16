@@ -61,7 +61,7 @@ impl Cuna {
     /// let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     /// let cue = Cuna::open(file).unwrap();
     /// assert_eq!(cue.comments[0], "GENRE Pop");
-    /// assert_eq!(cue.header.title, Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+    /// assert_eq!(cue.title(), Some(&vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
     /// assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
     /// assert_eq!(cue[0][0].performer(), Some(&vec!["EGOIST".to_owned()]));
     /// ```
