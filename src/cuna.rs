@@ -93,6 +93,18 @@ impl Cuna {
     pub fn header(&self) -> &Header {
         &self.header
     }
+    pub fn title(&self) -> Option<&Vec<String>> {
+        self.header.title()
+    }
+    pub fn performer(&self) -> Option<&Vec<String>> {
+        self.header.performer()
+    }
+    pub fn songwriter(&self) -> Option<&Vec<String>> {
+        self.header.songwriter().as_ref()
+    }
+    pub fn catalog(&self) -> Option<u64> {
+        self.header.catalog().map(|&cata| cata)
+    }
     pub fn files(&self) -> &Vec<TrackInfo> {
         &self.files
     }
