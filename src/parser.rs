@@ -226,6 +226,7 @@ impl<'a> Parser<'a> {
     }
 }
 
+#[inline(always)]
 fn parse_id(s: &str) -> Result<u8, InvalidArgument> {
     Ok(utils::number(2)(s)
         .map_err(|_| InvalidArgument::InvalidId)?
