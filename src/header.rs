@@ -13,6 +13,9 @@ impl Header {
     pub fn title(&self) -> Option<&Vec<String>> {
         self.title.as_ref()
     }
+    pub fn title_mut(&mut self) -> Option<&mut Vec<String>> {
+        self.title.as_mut()
+    }
     pub fn push_title(&mut self, title: String) {
         self.title
             .get_or_insert_with(|| Vec::with_capacity(1))
@@ -21,13 +24,20 @@ impl Header {
     pub fn performer(&self) -> Option<&Vec<String>> {
         self.performer.as_ref()
     }
+    pub fn performer_mut(&mut self) -> Option<&mut Vec<String>> {
+        self.performer.as_mut()
+    }
     pub fn push_performer(&mut self, performer: String) {
         self.performer
             .get_or_insert_with(|| Vec::with_capacity(1))
             .push(performer)
     }
+    /// This would return Option<&Vec<String>> in future versions
     pub fn songwriter(&self) -> &Option<Vec<String>> {
         &self.songwriter
+    }
+    pub fn songwriter_mut(&mut self) -> Option<&mut Vec<String>> {
+        self.songwriter.as_mut()
     }
     pub fn push_songwriter(&mut self, songwriter: String) {
         self.songwriter
