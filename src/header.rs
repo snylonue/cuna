@@ -2,50 +2,43 @@ use crate::error::ParseError;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Header {
-    pub title: Option<Vec<String>>,
-    pub performer: Option<Vec<String>>,
-    pub songwriter: Option<Vec<String>>,
+    pub title: Vec<String>,
+    pub performer: Vec<String>,
+    pub songwriter: Vec<String>,
     pub(crate) catalog: Option<u64>,
     pub cdtextfile: Option<String>,
 }
 
 impl Header {
-    pub fn title(&self) -> Option<&Vec<String>> {
-        self.title.as_ref()
+    pub fn title(&self) -> &Vec<String> {
+        &self.title
     }
-    pub fn title_mut(&mut self) -> Option<&mut Vec<String>> {
-        self.title.as_mut()
+    pub fn title_mut(&mut self) -> &mut Vec<String> {
+        &mut self.title
     }
     pub fn push_title(&mut self, title: String) {
-        self.title
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(title)
+        self.title.push(title)
     }
-    pub fn performer(&self) -> Option<&Vec<String>> {
-        self.performer.as_ref()
+    pub fn performer(&self) -> &Vec<String> {
+        &self.performer
     }
-    pub fn performer_mut(&mut self) -> Option<&mut Vec<String>> {
-        self.performer.as_mut()
+    pub fn performer_mut(&mut self) -> &mut Vec<String> {
+        &mut self.performer
     }
     pub fn push_performer(&mut self, performer: String) {
-        self.performer
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(performer)
+        self.performer.push(performer)
     }
-    /// This would return Option<&Vec<String>> in future versions
-    pub fn songwriter(&self) -> &Option<Vec<String>> {
+    pub fn songwriter(&self) -> &Vec<String> {
         &self.songwriter
     }
-    pub fn songwriter_mut(&mut self) -> Option<&mut Vec<String>> {
-        self.songwriter.as_mut()
+    pub fn songwriter_mut(&mut self) -> &mut Vec<String> {
+        &mut self.songwriter
     }
     pub fn push_songwriter(&mut self, songwriter: String) {
-        self.songwriter
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(songwriter)
+        self.songwriter.push(songwriter)
     }
-    pub fn catalog(&self) -> Option<&u64> {
-        self.catalog.as_ref()
+    pub fn catalog(&self) -> Option<u64> {
+        self.catalog
     }
     pub fn set_catalog(&mut self, catalog: u64) -> Result<Option<u64>, ParseError> {
         if len(catalog) == 13 {

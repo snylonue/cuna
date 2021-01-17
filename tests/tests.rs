@@ -95,7 +95,7 @@ mod cue_sheet {
         assert_eq!(sheet.comments[0], "GENRE Pop");
         assert_eq!(
             sheet.header.title,
-            Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()])
+            vec!["Departures ～あなたにおくるアイの歌～".to_owned()]
         );
         assert_eq!(sheet.files.len(), 1);
         assert_eq!(
@@ -104,7 +104,7 @@ mod cue_sheet {
         );
         assert_eq!(
             sheet.last_track().unwrap().performer(),
-            Some(&vec!["EGOIST".to_owned()])
+            &vec!["EGOIST".to_owned()]
         );
         Ok(())
     }
@@ -114,7 +114,7 @@ mod cue_sheet {
         assert_eq!(sheet.comments[0], "GENRE Pop");
         assert_eq!(
             sheet.header.title,
-            Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()])
+            vec!["Departures ～あなたにおくるアイの歌～".to_owned()]
         );
         assert_eq!(sheet.files.len(), 1);
         assert_eq!(
@@ -123,7 +123,7 @@ mod cue_sheet {
         );
         assert_eq!(
             sheet.last_track().unwrap().performer(),
-            Some(&vec!["EGOIST".to_owned()])
+            &vec!["EGOIST".to_owned()]
         );
         Ok(())
     }
@@ -133,7 +133,7 @@ mod cue_sheet {
         let mut tracks = sheet.tracks();
         let track = tracks.nth(2).unwrap(); // nth() is zero-indexed
         assert_eq!(
-            track.title().unwrap()[0],
+            track.title()[0],
             "Departures ~あなたにおくるアイの歌~ (TV Edit)"
         );
         assert_eq!(track, &sheet[0][2]);
@@ -166,7 +166,7 @@ mod parser {
         assert_eq!(parser.current_line(), Some("  TRACK 01 AUDIO"));
         assert_eq!(
             sheet.header.title,
-            Some(vec!["Departures ～あなたにおくるアイの歌～".to_owned()])
+            vec!["Departures ～あなたにおくるアイの歌～".to_owned()]
         );
         assert_eq!(
             sheet[0].name,

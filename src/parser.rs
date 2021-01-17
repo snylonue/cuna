@@ -150,7 +150,7 @@ impl<'a> Command<'a> {
                 None => fail!(token "ISRC"),
             },
             Self::Flags(s) => match sheet.last_track_mut() {
-                Some(tk) if tk.flags.is_none() => tk.push_flags(s.split(' ')),
+                Some(tk) if tk.flags.is_empty() => tk.push_flags(s.split(' ')),
                 Some(_) => {
                     fail!(syntax self, "Multiple `FLAGS` commands are not allowed in one `TRACK` scope")
                 }

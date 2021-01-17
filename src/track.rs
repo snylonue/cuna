@@ -24,11 +24,11 @@ pub struct Track {
     pub index: Vec<Index>,
     pub pregap: Option<TimeStamp>,
     pub postgap: Option<TimeStamp>,
-    pub title: Option<Vec<String>>,
-    pub performer: Option<Vec<String>>,
-    pub songwriter: Option<Vec<String>>,
+    pub title: Vec<String>,
+    pub performer: Vec<String>,
+    pub songwriter: Vec<String>,
     pub isrc: Option<String>,
-    pub flags: Option<Vec<String>>,
+    pub flags: Vec<String>,
 }
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct TrackInfo {
@@ -108,29 +108,23 @@ impl Track {
     pub fn postgap(&self) -> Option<&TimeStamp> {
         self.postgap.as_ref()
     }
-    pub fn title(&self) -> Option<&Vec<String>> {
+    pub fn title(&self) -> &Vec<String> {
         self.title.as_ref()
     }
     pub fn push_title(&mut self, title: String) {
-        self.title
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(title)
+        self.title.push(title)
     }
-    pub fn performer(&self) -> Option<&Vec<String>> {
-        self.performer.as_ref()
+    pub fn performer(&self) -> &Vec<String> {
+        &self.performer
     }
     pub fn push_performer(&mut self, performer: String) {
-        self.performer
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(performer)
+        self.performer.push(performer)
     }
-    pub fn songwriter(&self) -> Option<&Vec<String>> {
-        self.songwriter.as_ref()
+    pub fn songwriter(&self) -> &Vec<String> {
+        &self.songwriter
     }
     pub fn push_songwriter(&mut self, songwriter: String) {
-        self.songwriter
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(songwriter)
+        self.songwriter.push(songwriter)
     }
     pub fn push_index(&mut self, index: Index) {
         self.index.push(index)
@@ -147,22 +141,18 @@ impl Track {
     pub fn set_isrc(&mut self, isrc: String) -> Option<String> {
         self.isrc.replace(isrc)
     }
-    pub fn flags(&self) -> Option<&Vec<String>> {
-        self.flags.as_ref()
+    pub fn flags(&self) -> &Vec<String> {
+        &self.flags
     }
     pub fn push_flag(&mut self, flag: String) {
-        self.flags
-            .get_or_insert_with(|| Vec::with_capacity(1))
-            .push(flag)
+        self.flags.push(flag)
     }
     pub fn push_flags<F, S>(&mut self, flags: F)
     where
         F: IntoIterator<Item = S>,
         S: Into<String>,
     {
-        self.flags
-            .get_or_insert_with(Vec::new)
-            .extend(flags.into_iter().map(Into::into))
+        self.flags.extend(flags.into_iter().map(Into::into))
     }
 }
 impl FromStr for Track {

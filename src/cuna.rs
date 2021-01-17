@@ -61,9 +61,9 @@ impl Cuna {
     /// let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     /// let cue = Cuna::open(file).unwrap();
     /// assert_eq!(cue.comments[0], "GENRE Pop");
-    /// assert_eq!(cue.title(), Some(&vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+    /// assert_eq!(cue.title(), &vec!["Departures ～あなたにおくるアイの歌～".to_owned()]);
     /// assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-    /// assert_eq!(cue[0][0].performer(), Some(&vec!["EGOIST".to_owned()]));
+    /// assert_eq!(cue[0][0].performer(), &vec!["EGOIST".to_owned()]);
     /// ```
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
@@ -93,17 +93,17 @@ impl Cuna {
     pub fn header(&self) -> &Header {
         &self.header
     }
-    pub fn title(&self) -> Option<&Vec<String>> {
+    pub fn title(&self) -> &Vec<String> {
         self.header.title()
     }
-    pub fn performer(&self) -> Option<&Vec<String>> {
+    pub fn performer(&self) -> &Vec<String> {
         self.header.performer()
     }
-    pub fn songwriter(&self) -> Option<&Vec<String>> {
+    pub fn songwriter(&self) -> &Vec<String> {
         self.header.songwriter().as_ref()
     }
     pub fn catalog(&self) -> Option<u64> {
-        self.header.catalog().map(|&cata| cata)
+        self.header.catalog()
     }
     pub fn files(&self) -> &Vec<TrackInfo> {
         &self.files
