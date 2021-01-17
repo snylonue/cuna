@@ -10,6 +10,8 @@ use nom::sequence::tuple;
 use std::ops;
 use std::str::FromStr;
 
+pub use self::TrackInfo as File;
+
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Copy)]
 pub struct Index {
     pub(crate) id: u8, // index id must between 1 and 99
