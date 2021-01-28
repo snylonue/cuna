@@ -23,6 +23,7 @@ pub enum ParseError {
     #[error(transparent)]
     InvalidArgument(#[from] InvalidArgument),
     /// There is nothing to parse or reaches eof
+    #[deprecated = "This is no long be returned"]
     #[error("Nothing to parse or eof")]
     Empty,
     /// Fails to read a file
@@ -61,6 +62,8 @@ impl PartialEq for ParseError {
     }
 }
 impl Error {
+    #[deprecated = "This is no long be returned"]
+    #[allow(deprecated)]
     pub const EMPTY: Self = Self::from_parse_error(ParseError::Empty);
 
     pub const fn new(error: ParseError, at: usize) -> Self {

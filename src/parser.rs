@@ -18,13 +18,6 @@ macro_rules! fail {
     (syntax $cmd: expr, $msg: expr) => {
         return Err($crate::error::ParseError::syntax_error($cmd, $msg));
     };
-    (skip_empty $e: expr) => {
-        match $e {
-            Ok(ok) => ok,
-            Err(e) if e == $crate::error::Error::EMPTY => continue,
-            Err(e) => return Err(e),
-        }
-    };
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -42,6 +35,7 @@ pub enum Command<'a> {
     Postgap(&'a str),
     Isrc(&'a str),
     Flags(&'a str),
+    Empty,
 }
 #[derive(Debug, Clone)]
 pub struct Parser<'a>(Enumerate<Lines<'a>>);
@@ -49,7 +43,7 @@ pub struct Parser<'a>(Enumerate<Lines<'a>>);
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
         let s = match s.trim() {
-            "" => return Err(ParseError::Empty),
+            "" => return Ok(Self::Empty),
             ts => ts,
         };
         let (content, command) = match utils::token(s) {
@@ -87,6 +81,7 @@ impl<'a> Command<'a> {
     }
     pub fn parse(&self, sheet: &mut Cuna) -> Result<(), ParseError> {
         match *self {
+            Self::Empty => {}
             Self::Rem(s) => sheet.comments.push(s.to_owned()),
             Self::Title(s) => match sheet.last_track_mut() {
                 Some(tk) => tk.push_title(s.to_owned()),
@@ -176,6 +171,7 @@ impl fmt::Display for Command<'_> {
             Self::Postgap(c) => write!(formatter, "POSTGAP {}", c),
             Self::Isrc(c) => write!(formatter, "ISRC {}", c),
             Self::Flags(c) => write!(formatter, "FLAG {}", c),
+            Self::Empty => Ok(()),
         }
     }
 }
@@ -209,8 +205,10 @@ impl<'a> Parser<'a> {
     pub fn parse_next_n_lines(&mut self, n: usize, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref().take(n) {
             let to_error = |e| Error::new(e, at + 1);
-            let command = fail!(skip_empty Command::new(line).map_err(to_error));
-            command.parse(state).map_err(to_error)?;
+            Command::new(line)
+                .map_err(to_error)?
+                .parse(state)
+                .map_err(to_error)?;
         }
         Ok(())
     }
@@ -219,8 +217,10 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref() {
             let to_error = |e| Error::new(e, at + 1);
-            let command = fail!(skip_empty Command::new(line).map_err(to_error));
-            command.parse(state).map_err(to_error)?;
+            Command::new(line)
+                .map_err(to_error)?
+                .parse(state)
+                .map_err(to_error)?;
         }
         Ok(())
     }
