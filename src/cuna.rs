@@ -1,9 +1,11 @@
 use crate::comment::Comment;
 use crate::error::Error;
 use crate::header::Header;
+use crate::parser::Command;
 use crate::parser::Parser;
 use crate::track::Track;
 use crate::track::TrackInfo;
+use crate::trim_utf8_header;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -77,12 +79,9 @@ impl Cuna {
             match buf.read_line(&mut buffer) {
                 Ok(0) => break Ok(sheet),
                 Ok(_) => {
-                    Parser::new(crate::trim_utf8_header(&buffer))
-                        .parse(&mut sheet)
-                        .map_err(|mut e| {
-                            e.set_pos(at);
-                            e
-                        })?;
+                    let command =
+                        Command::new(trim_utf8_header(&buffer)).map_err(|e| Error::new(e, at))?;
+                    command.parse(&mut sheet).map_err(|e| Error::new(e, at))?;
                 }
                 Err(e) => break Err(Error::new(e.into(), at)),
             }
