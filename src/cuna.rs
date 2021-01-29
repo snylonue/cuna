@@ -26,13 +26,14 @@ pub struct Cuna {
 }
 
 impl Cuna {
-    #[deprecated = "This method will be changed soon, use Cuna::with_parts() instead"]
-    pub const fn new(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
-        Self {
-            header,
-            files,
-            comments,
-        }
+    /// Parses an str as cue sheet
+    /// ```rust
+    /// use cuna::Cuna;
+    /// let sheet = Cuna::new("REM a cue sheet").unwrap();
+    /// ```
+    #[inline(always)]
+    pub fn new(s: &str) -> Result<Self, Error> {
+        s.parse()
     }
     pub const fn with_parts(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
         Self {
@@ -40,10 +41,6 @@ impl Cuna {
             files,
             comments,
         }
-    }
-    #[deprecated = "use Cuna::from_str() instead"]
-    pub fn from_utf8_with_bom(s: &str) -> Result<Self, Error> {
-        Ok(crate::trim_utf8_header(s).parse()?) // remove UTF-8 BOM header
     }
     /// Parses a file as a cue sheet
     ///
