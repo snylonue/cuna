@@ -2,7 +2,7 @@ use crate::comment::Comment;
 use crate::error::Error;
 use crate::header::Header;
 use crate::parser::Command;
-use crate::parser::Parser;
+use crate::parser::Parna;
 use crate::track::Track;
 use crate::track::TrackInfo;
 use crate::trim_utf8_header;
@@ -153,7 +153,7 @@ impl FromStr for Cuna {
     /// ```
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut sheet = Cuna::default();
-        Parser::new(crate::trim_utf8_header(s)).parse(&mut sheet)?;
+        Parna::new(crate::trim_utf8_header(s)).parse(&mut sheet)?;
         Ok(sheet)
     }
 }

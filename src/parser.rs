@@ -11,6 +11,8 @@ use std::fmt;
 use std::iter::Enumerate;
 use std::str::Lines;
 
+pub type Parser<'a> = Parna<Enumerate<Lines<'a>>>;
+
 macro_rules! fail {
     (token $token: expr) => {
         return Err($crate::error::ParseError::unexpected_token($token));
@@ -38,7 +40,7 @@ pub enum Command<'a> {
     Empty,
 }
 #[derive(Debug, Clone)]
-pub struct Parser<'a>(Enumerate<Lines<'a>>);
+pub struct Parna<I>(I);
 
 impl<'a> Command<'a> {
     pub fn new(s: &'a str) -> Result<Self, ParseError> {
@@ -175,7 +177,7 @@ impl fmt::Display for Command<'_> {
         }
     }
 }
-impl<'a> Parser<'a> {
+impl<'a> Parna<Enumerate<Lines<'a>>> {
     /// Returns a new Parser
     pub fn new(s: &'a str) -> Self {
         Self(s.lines().enumerate())
@@ -186,16 +188,8 @@ impl<'a> Parser<'a> {
     pub fn set_lines(&mut self, lines: Lines<'a>) {
         self.0 = lines.enumerate();
     }
-    /// Returns the current line to be parsed
-    /// ```rust
-    /// use cuna::parser::Parser;
-    /// let line = r#"TITLE "HELLO WORLD オリジナル・サウンドトラック""#;
-    /// let parser = Parser::new(line);
-    /// assert_eq!(parser.current_line(), Some(line));
-    /// ```
-    pub fn current_line(&self) -> Option<&str> {
-        self.0.clone().next().map(|(_, s)| s)
-    }
+}
+impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut Cuna) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
@@ -223,6 +217,18 @@ impl<'a> Parser<'a> {
                 .map_err(to_error)?;
         }
         Ok(())
+    }
+}
+impl<'a, I: Iterator<Item = (usize, &'a str)> + Clone> Parna<I> {
+    /// Returns the current line to be parsed
+    /// ```rust
+    /// use cuna::parser::Parser;
+    /// let line = r#"TITLE "HELLO WORLD オリジナル・サウンドトラック""#;
+    /// let parser = Parser::new(line);
+    /// assert_eq!(parser.current_line(), Some(line));
+    /// ```
+    pub fn current_line(&self) -> Option<&'a str> {
+        self.0.clone().next().map(|(_, s)| s)
     }
 }
 
