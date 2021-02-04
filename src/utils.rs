@@ -14,10 +14,6 @@ use std::str::FromStr;
 pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     move |i: &str| terminated(tag_no_case(kd), tag(" "))(i)
 }
-#[deprecated = "this is never used"]
-pub fn keywordc<'a, 'b: 'a>(kd: &'b str, content: &'a str) -> IResult<&'a str, &'a str> {
-    keyword(kd)(content)
-}
 pub fn quote(content: &str) -> IResult<&str, &str> {
     delimited(tag(r#"""#), take_until(r#"""#), tag(r#"""#))(content)
 }

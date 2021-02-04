@@ -22,10 +22,6 @@ pub enum ParseError {
     UnexpectedToken(String),
     #[error(transparent)]
     InvalidArgument(#[from] InvalidArgument),
-    /// There is nothing to parse or reaches eof
-    #[deprecated = "This is no longer returned"]
-    #[error("Nothing to parse or eof")]
-    Empty,
     /// Fails to read a file
     #[error("IoError: {0}")]
     IoError(#[from] io::Error),
@@ -62,10 +58,6 @@ impl PartialEq for ParseError {
     }
 }
 impl Error {
-    #[deprecated = "This is no longer returned"]
-    #[allow(deprecated)]
-    pub const EMPTY: Self = Self::from_parse_error(ParseError::Empty);
-
     pub const fn new(error: ParseError, at: usize) -> Self {
         Self {
             error,
@@ -77,10 +69,6 @@ impl Error {
     }
     pub const fn kind(&self) -> &ParseError {
         &self.error
-    }
-    #[deprecated(note = "Please use Error::pos() instead")]
-    pub const fn at(&self) -> &Option<usize> {
-        &self.at
     }
     pub const fn pos(&self) -> Option<usize> {
         self.at
