@@ -9,7 +9,7 @@ Current document is not complete and the api is a bit complex, so [rcue](https:/
 [crates.io](https://crates.io/crates/cuna)
 [documention](https://docs.rs/cuna)
 
-cuna 0.5 has introduced some incompatible changes, see the [documention](https://docs.rs/cuna) before upgrading (if you actually wanted). Also note that the crate is still 0.x. 
+cuna 0.6 has introduced some incompatible changes, go for the [release page](https://github.com/snylonue/cuna/releases) to see them. Also note that the crate is still 0.x. 
 
 If you find anything confusing or that doesn't observe the cue standard, please open an issue.
 
@@ -21,9 +21,9 @@ fn main() -> Result<(), Error> {
     let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     let cue = Cuna::open(file)?;
     assert_eq!(cue.comments[0], "GENRE Pop");
-    assert_eq!(cue.title(), Some(&vec!["Departures ～あなたにおくるアイの歌～".to_owned()]));
+    assert_eq!(cue.title(), &["Departures ～あなたにおくるアイの歌～".to_owned()]);
     assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-    assert_eq!(cue[0][0].performer(), Some(&vec!["EGOIST".to_owned()]));
+    assert_eq!(cue[0][0].performer(), &["EGOIST".to_owned()]);
     Ok(())
 }
 ```

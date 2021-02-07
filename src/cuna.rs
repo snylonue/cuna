@@ -60,9 +60,9 @@ impl Cuna {
     /// let file = "tests/EGOIST - Departures ～あなたにおくるアイの歌～.cue";
     /// let cue = Cuna::open(file).unwrap();
     /// assert_eq!(cue.comments[0], "GENRE Pop");
-    /// assert_eq!(cue.title(), &vec!["Departures ～あなたにおくるアイの歌～".to_owned()]);
+    /// assert_eq!(cue.title(), &["Departures ～あなたにおくるアイの歌～".to_owned()]);
     /// assert_eq!(cue[0].name, "EGOIST - Departures ～あなたにおくるアイの歌～.flac");
-    /// assert_eq!(cue[0][0].performer(), &vec!["EGOIST".to_owned()]);
+    /// assert_eq!(cue[0][0].performer(), &["EGOIST".to_owned()]);
     /// ```
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
         let mut file = File::open(path)?;
