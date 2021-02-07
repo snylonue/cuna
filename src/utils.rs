@@ -11,7 +11,7 @@ use nom::sequence::terminated;
 use nom::IResult;
 use std::str::FromStr;
 
-pub fn keyword<'a, 'b: 'a>(kd: &'b str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
+pub fn keyword<'a>(kd: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     move |i: &str| terminated(tag_no_case(kd), tag(" "))(i)
 }
 pub fn quote(content: &str) -> IResult<&str, &str> {

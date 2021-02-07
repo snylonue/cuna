@@ -76,9 +76,9 @@ impl Cuna {
             match buf.read_line(&mut buffer) {
                 Ok(0) => break Ok(sheet),
                 Ok(_) => {
-                    let command =
-                        Command::new(trim_utf8_header(&buffer)).map_err(|e| Error::new(e, at))?;
-                    command.parse(&mut sheet).map_err(|e| Error::new(e, at))?;
+                    let err = |e| Error::new(e, at);
+                    let command = Command::new(trim_utf8_header(&buffer)).map_err(err)?;
+                    command.parse(&mut sheet).map_err(err)?;
                 }
                 Err(e) => break Err(Error::new(e.into(), at)),
             }
@@ -131,11 +131,11 @@ impl Cuna {
     }
     /// Returns the last `TRACK` field which appears in the cue sheet
     pub fn last_track(&self) -> Option<&Track> {
-        self.last_file().map(|tk| tk.last_track()).flatten()
+        self.last_file().map(TrackInfo::last_track).flatten()
     }
     /// The mutable version of [`Cuna::last_track()`](Cuna::last_track)
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
-        self.last_file_mut().map(|tk| tk.last_track_mut()).flatten()
+        self.last_file_mut().map(TrackInfo::last_track_mut).flatten()
     }
     /// An iterator over the `TRACK`s in all the `FILE`s
     pub fn tracks(&self) -> Flatten<Iter<TrackInfo>> {
