@@ -182,14 +182,20 @@ impl<'a> Parna<Enumerate<Lines<'a>>> {
     pub fn new(s: &'a str) -> Self {
         Self(s.lines().enumerate())
     }
-    pub fn from_lines(lines: Lines<'a>) -> Self {
+}
+impl <'a, I: Iterator<Item = &'a str>> Parna<Enumerate<I>> {
+    pub fn from_lines(lines: I) -> Self {
         Self(lines.enumerate())
     }
-    pub fn set_lines(&mut self, lines: Lines<'a>) {
+    #[deprecated]
+    pub fn set_lines(&mut self, lines: I) {
         self.0 = lines.enumerate();
     }
 }
 impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
+    pub fn with_iter(it: I) -> Self {
+        Self(it)
+    }
     /// Parses one line and writes to state
     pub fn parse_next_line(&mut self, state: &mut Cuna) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
