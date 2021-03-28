@@ -195,6 +195,7 @@ impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
         self.parse_next_n_lines(1, state)
     }
     /// Parses n lines and writes to state
+    ///
     /// Each line will be parsed and written to state until an Error is returned
     pub fn parse_next_n_lines(&mut self, n: usize, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref().take(n) {
@@ -207,6 +208,7 @@ impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
         Ok(())
     }
     /// Parses all the lines and writes to state
+    ///
     /// Each line will be parsed and written to state until an Error is returned
     pub fn parse(&mut self, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref() {
