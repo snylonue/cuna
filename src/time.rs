@@ -125,7 +125,7 @@ impl fmt::Display for TimeStamp {
 }
 impl From<TimeStamp> for Duration {
     fn from(ti: TimeStamp) -> Duration {
-        Duration::from_secs(ti.seconds() as u64)
+        Duration::from_secs(ti.seconds as u64)
             + Duration::from_millis(ti.frames() as u64 * 40 / 3)
     }
 }
