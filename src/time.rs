@@ -106,10 +106,7 @@ impl FromStr for TimeStamp {
             number(2),
         ))(s)
         .map_err(|_| InvalidArgument::InvalidTimestamp)?;
-        Ok(
-            Self::from_msf_opt(minutes, seconds, frames)
-                .ok_or(InvalidArgument::InvalidTimestamp)?,
-        )
+        Self::from_msf_opt(minutes, seconds, frames).ok_or(InvalidArgument::InvalidTimestamp)
     }
 }
 impl fmt::Display for TimeStamp {

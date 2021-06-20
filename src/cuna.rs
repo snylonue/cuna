@@ -96,7 +96,7 @@ impl Cuna {
         self.header.performer()
     }
     pub fn songwriter(&self) -> &Vec<String> {
-        self.header.songwriter().as_ref()
+        self.header.songwriter()
     }
     pub fn catalog(&self) -> Option<u64> {
         self.header.catalog()
