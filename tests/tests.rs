@@ -45,10 +45,13 @@ mod time {
     }
     #[test]
     fn convert() {
-        let timestamp = TimeStamp::new(0, 0, 30);
-        assert_eq!(Duration::from(timestamp), Duration::from_millis(400));
-        let duration = Duration::from_millis(400);
-        assert_eq!(TimeStamp::from(duration), TimeStamp::new(0, 0, 30));
+        let timestamp = TimeStamp::new(1, 3, 30);
+        assert_eq!(
+            Duration::from(timestamp),
+            Duration::from_millis(400 + 63 * 1000)
+        );
+        let duration = Duration::from_millis(400 + 63 * 1000);
+        assert_eq!(TimeStamp::from(duration), TimeStamp::new(1, 3, 30));
     }
     #[test]
     fn getter() {
