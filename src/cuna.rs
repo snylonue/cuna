@@ -135,7 +135,9 @@ impl Cuna {
     }
     /// The mutable version of [`Cuna::last_track()`](Cuna::last_track)
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
-        self.last_file_mut().map(TrackInfo::last_track_mut).flatten()
+        self.last_file_mut()
+            .map(TrackInfo::last_track_mut)
+            .flatten()
     }
     /// An iterator over the `TRACK`s in all the `FILE`s
     pub fn tracks(&self) -> Flatten<Iter<TrackInfo>> {

@@ -183,7 +183,7 @@ impl<'a> Parna<Enumerate<Lines<'a>>> {
         Self(s.lines().enumerate())
     }
 }
-impl <'a, I: Iterator<Item = &'a str>> Parna<Enumerate<I>> {
+impl<'a, I: Iterator<Item = &'a str>> Parna<Enumerate<I>> {
     pub fn from_lines(lines: I) -> Self {
         Self(lines.enumerate())
     }
