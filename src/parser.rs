@@ -254,7 +254,11 @@ impl<'a, I: Iterator<Item = (usize, &'a str)> + Clone> Parna<I> {
     /// assert_eq!(parser.current_line(), Some(line));
     /// ```
     pub fn current_line(&self) -> Option<&'a str> {
-        self.0.clone().next().map(|(_, s)| s)
+        self.current().map(|(_, s)| s)
+    }
+    /// Like [`current_line()`](Parna::current_line), but returns line number at the same time
+    pub fn current(&self) -> Option<(usize, &'a str)> {
+        self.0.clone().next()
     }
 }
 
