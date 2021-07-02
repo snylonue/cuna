@@ -208,6 +208,10 @@ impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
     pub fn with_iter(it: I) -> Self {
         Self(it)
     }
+    /// Returns a mut reference to the internal iterator
+    pub fn data(&mut self) -> &mut I {
+        self.0.by_ref()
+    }
     /// Parses one line and writes to `state`
     pub fn parse_next_line(&mut self, state: &mut Cuna) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
