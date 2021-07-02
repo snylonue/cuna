@@ -59,8 +59,8 @@ mod time {
         assert_eq!(timestamp.minutes(), 21);
         assert_eq!(timestamp.seconds(), 29);
         assert_eq!(timestamp.frames(), 73);
-        assert_eq!(timestamp.as_seconds(), 1289);
-        assert_eq!(timestamp.as_frames(), 96748);
+        assert_eq!(timestamp.total_seconds(), 1289);
+        assert_eq!(timestamp.total_frames(), 96748);
     }
 }
 #[cfg(test)]

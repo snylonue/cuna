@@ -87,13 +87,25 @@ impl TimeStamp {
         assert!(frames < 75);
         self.frames = frames as u8;
     }
+    #[deprecated = "use total_seconds() instead"]
     /// Returns the total number of whole seconds contained by this `TimeStamp`
     pub const fn as_seconds(&self) -> u32 {
         self.seconds
     }
+    /// Returns the total number of whole seconds contained by this `TimeStamp`
+    pub const fn total_seconds(&self) -> u32 {
+        self.seconds
+    }
+    #[deprecated = "use total_frames() instead"]
     /// Returns the total number of whole frames contained by this `TimeStamp`
     pub const fn as_frames(&self) -> u32 {
-        self.as_seconds() * 75 + self.frames()
+        self.total_frames()
+    }
+    /// Returns the total number of whole frames contained by this `TimeStamp`
+    ///
+    /// Overflows if `self.total_seconds() * 75 + self.frames() > u32::MAX`
+    pub const fn total_frames(&self) -> u32 {
+        self.total_seconds() * 75 + self.frames()
     }
 }
 impl FromStr for TimeStamp {
