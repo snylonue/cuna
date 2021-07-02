@@ -39,6 +39,14 @@ pub enum Command<'a> {
     Flags(&'a str),
     Empty,
 }
+
+/// A lazy parser takes iterators of `(usize, &str)`
+/// which won't parse anything unless `Parna::parse*()` is called
+///
+/// In most cases, it is constructed with an str using [`Parna::new()`](Parna::new)
+/// 
+/// It only stores the original data
+/// and results will be written to `Cuna` which is passed to `Parna::parse*()`
 #[derive(Debug, Clone)]
 pub struct Parna<I>(I);
 
@@ -193,16 +201,20 @@ impl<'a, I: Iterator<Item = &'a str>> Parna<Enumerate<I>> {
     }
 }
 impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
+    /// Constructs a `Parna` with a generic iterator of `(usize, &str)`
+    ///
+    /// The `usize` represents which line is being parsed
+    /// and the `&str` represents the actual data
     pub fn with_iter(it: I) -> Self {
         Self(it)
     }
-    /// Parses one line and writes to state
+    /// Parses one line and writes to `state`
     pub fn parse_next_line(&mut self, state: &mut Cuna) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
     }
-    /// Parses n lines and writes to state
+    /// Parses n lines and writes to `state`
     ///
-    /// Each line will be parsed and written to state until an Error is returned
+    /// Each line will be parsed and written to `state` until an `Error` is returned
     pub fn parse_next_n_lines(&mut self, n: usize, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref().take(n) {
             let to_error = |e| Error::new(e, at + 1);
@@ -213,9 +225,11 @@ impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
         }
         Ok(())
     }
-    /// Parses all the lines and writes to state
+    /// Parses all the lines and writes to `state`
     ///
-    /// Each line will be parsed and written to state until an Error is returned
+    /// Each line will be parsed and written to `state` until an `Error` is returned
+    ///
+    /// If all the lines are parsed successfully, an `Ok(())` will be returned
     pub fn parse(&mut self, state: &mut Cuna) -> Result<(), Error> {
         for (at, line) in self.0.by_ref() {
             let to_error = |e| Error::new(e, at + 1);

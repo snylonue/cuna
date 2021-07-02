@@ -17,7 +17,12 @@ use std::str::FromStr;
 
 /// Represents a cue sheet
 ///
-/// See [`parser::Parser`](crate::parser::Parser) to deal with errors when parsing
+/// All constructors internally use [`Parna`](crate::parser::Parna) as a parser
+/// and stops parsing as long as an error occured.
+///
+/// If you want to ignore some errors, try [`Parna::parse()`](crate::parser::Parna::parse) to manually deal with them.
+///
+/// In most cases, you just need to keep calling it until an `Ok(())` is returned.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Cuna {
     pub header: Header,
