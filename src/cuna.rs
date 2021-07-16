@@ -49,14 +49,14 @@ impl Cuna {
     }
     /// Parses a file as a cue sheet
     ///
-    /// **Only UTF-8 encoding is supported (BOM header will be removed)**
+    /// **Only supports UTF-8 encoding (with BOM or not)**
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
         let mut buffer = BufReader::new(file);
         Self::from_buf_read(&mut buffer)
     }
     /// Opens a file and parses it as a cue sheet
     ///
-    /// **Only UTF-8 encoding is supported (BOM will be removed)**
+    /// **Only supports UTF-8 encoding (with BOM or not)**
     ///
     /// ```rust
     /// use cuna::Cuna;
@@ -73,6 +73,17 @@ impl Cuna {
         let mut file = File::open(path)?;
         Self::from_file(&mut file)
     }
+    /// Opens a file and parses it as a cue sheet like [`open()`](Self::open()),
+    /// except this method skips bad lines.
+    ///
+    /// **Only supports UTF-8 encoding (with BOM or not)**
+    pub fn open_suc<P: AsRef<Path>>(path: P) -> std::io::Result<Self> {
+        let mut buffer = BufReader::new(File::open(path)?);
+        Self::from_buf_read_suc(&mut buffer)
+    }
+    /// Reads `buf` and parses it as a cue sheet
+    ///
+    /// **Only supports UTF-8 encoding (with BOM or not)**
     pub fn from_buf_read(buf: &mut impl BufRead) -> Result<Self, Error> {
         let mut sheet = Self::default();
         let mut buffer = String::new();
@@ -88,6 +99,28 @@ impl Cuna {
                 Err(e) => break Err(Error::new(e.into(), at)),
             }
             at += 1;
+            buffer.clear();
+        }
+    }
+    /// Reads `buf` and parses it as a cue sheet like [`from_buf_read()`](Self::from_buf_read()),
+    /// except this method skips bad lines.
+    ///
+    /// **Only supports UTF-8 encoding (with BOM or not)**
+    pub fn from_buf_read_suc(buf: &mut impl BufRead) -> std::io::Result<Self> {
+        let mut sheet = Self::default();
+        let mut buffer = String::new();
+        loop {
+            match buf.read_line(&mut buffer) {
+                Ok(0) => break Ok(sheet),
+                Ok(_) => {
+                    let command = match Command::new(trim_utf8_header(&buffer)) {
+                        Ok(c) => c,
+                        _ => continue,
+                    };
+                    let _ = command.parse(&mut sheet);
+                }
+                Err(e) => break Err(e),
+            }
             buffer.clear();
         }
     }
