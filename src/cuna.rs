@@ -51,8 +51,8 @@ impl Cuna {
     ///
     /// **Only supports UTF-8 encoding (with BOM or not)**
     pub fn from_file(file: &mut File) -> Result<Self, Error> {
-        let mut buffer = BufReader::new(file);
-        Self::from_buf_read(&mut buffer)
+        let buffer = BufReader::new(file);
+        Self::from_buf_read(buffer)
     }
     /// Opens a file and parses it as a cue sheet
     ///
@@ -78,13 +78,13 @@ impl Cuna {
     ///
     /// **Only supports UTF-8 encoding (with BOM or not)**
     pub fn open_suc<P: AsRef<Path>>(path: P) -> std::io::Result<Self> {
-        let mut buffer = BufReader::new(File::open(path)?);
-        Self::from_buf_read_suc(&mut buffer)
+        let buffer = BufReader::new(File::open(path)?);
+        Self::from_buf_read_suc(buffer)
     }
     /// Reads `buf` and parses it as a cue sheet
     ///
     /// **Only supports UTF-8 encoding (with BOM or not)**
-    pub fn from_buf_read(buf: &mut impl BufRead) -> Result<Self, Error> {
+    pub fn from_buf_read(mut buf: impl BufRead) -> Result<Self, Error> {
         let mut sheet = Self::default();
         let mut buffer = String::new();
         let mut at = 1;
@@ -106,7 +106,7 @@ impl Cuna {
     /// except this method skips bad lines.
     ///
     /// **Only supports UTF-8 encoding (with BOM or not)**
-    pub fn from_buf_read_suc(buf: &mut impl BufRead) -> std::io::Result<Self> {
+    pub fn from_buf_read_suc(mut buf: impl BufRead) -> std::io::Result<Self> {
         let mut sheet = Self::default();
         let mut buffer = String::new();
         loop {
