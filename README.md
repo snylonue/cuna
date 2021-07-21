@@ -9,7 +9,7 @@ Current document is not complete and the api is a bit complex, so [rcue](https:/
 [crates.io](https://crates.io/crates/cuna)
 [documention](https://docs.rs/cuna)
 
-cuna 0.6 has introduced some incompatible changes, go for the [release page](https://github.com/snylonue/cuna/releases) to see them. Also note that the crate is still 0.x. 
+cuna 0.6 has introduced some incompatible changes, go to the [release page](https://github.com/snylonue/cuna/releases) to see them. Also note that the crate is still 0.x. 
 
 If you find anything confusing or that doesn't observe the cue standard, please open an issue.
 
