@@ -208,6 +208,10 @@ impl<'a, I: Iterator<Item = (usize, &'a str)>> Parna<I> {
     pub fn with_iter(it: I) -> Self {
         Self(it)
     }
+    /// Returns a mut reference to the internal iterator
+    pub fn data(&mut self) -> &mut I {
+        self.0.by_ref()
+    }
     /// Parses one line and writes to `state`
     pub fn parse_next_line(&mut self, state: &mut Cuna) -> Result<(), Error> {
         self.parse_next_n_lines(1, state)
@@ -250,7 +254,11 @@ impl<'a, I: Iterator<Item = (usize, &'a str)> + Clone> Parna<I> {
     /// assert_eq!(parser.current_line(), Some(line));
     /// ```
     pub fn current_line(&self) -> Option<&'a str> {
-        self.0.clone().next().map(|(_, s)| s)
+        self.current().map(|(_, s)| s)
+    }
+    /// Like [`current_line()`](Parna::current_line), but returns line number at the same time
+    pub fn current(&self) -> Option<(usize, &'a str)> {
+        self.0.clone().next()
     }
 }
 
