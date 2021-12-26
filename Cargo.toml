@@ -2,7 +2,7 @@
 name = "cuna"
 version = "0.6.2"
 authors = ["snylonue <snylonue@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "A simple cue parser"
 license = "MIT"
 readme = "README.md"

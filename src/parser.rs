@@ -15,10 +15,10 @@ pub type Parser<'a> = Parna<Enumerate<Lines<'a>>>;
 
 macro_rules! fail {
     (token $token: expr) => {
-        return Err($crate::error::ParseError::unexpected_token($token));
+        return Err($crate::error::ParseError::unexpected_token($token))
     };
     (syntax $cmd: expr, $msg: expr) => {
-        return Err($crate::error::ParseError::syntax_error($cmd, $msg));
+        return Err($crate::error::ParseError::syntax_error($cmd, $msg))
     };
 }
 
@@ -44,7 +44,7 @@ pub enum Command<'a> {
 /// which won't parse anything unless `Parna::parse*()` is called
 ///
 /// In most cases, it is constructed with an str using [`Parna::new()`](Parna::new)
-/// 
+///
 /// It only stores the original data
 /// and results will be written to `Cuna` which is passed to `Parna::parse*()`
 #[derive(Debug, Clone)]
