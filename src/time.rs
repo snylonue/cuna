@@ -132,15 +132,35 @@ impl fmt::Display for TimeStamp {
         )
     }
 }
-impl From<TimeStamp> for Duration {
-    fn from(ti: TimeStamp) -> Duration {
+impl From<&TimeStamp> for Duration {
+    fn from(ti: &TimeStamp) -> Duration {
         Duration::from_secs(ti.seconds as u64) + Duration::from_millis(ti.frames() as u64 * 40 / 3)
     }
 }
-impl From<Duration> for TimeStamp {
-    fn from(dr: Duration) -> Self {
+impl From<&mut TimeStamp> for Duration {
+    fn from(ti: &mut TimeStamp) -> Duration {
+        Duration::from(&*ti)
+    }
+}
+impl From<TimeStamp> for Duration {
+    fn from(ti: TimeStamp) -> Duration {
+        Duration::from(&ti)
+    }
+}
+impl From<&Duration> for TimeStamp {
+    fn from(dr: &Duration) -> Self {
         let secs = dr.as_secs();
         let frames = dr.subsec_millis() * 3 / 40;
         Self::from_msf(0, secs as u32, frames)
+    }
+}
+impl From<&mut Duration> for TimeStamp {
+    fn from(dr: &mut Duration) -> TimeStamp {
+        TimeStamp::from(&*dr)
+    }
+}
+impl From<Duration> for TimeStamp {
+    fn from(dr: Duration) -> TimeStamp {
+        TimeStamp::from(&dr)
     }
 }
