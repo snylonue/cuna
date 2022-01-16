@@ -102,6 +102,16 @@ impl Track {
     pub fn format(&self) -> &str {
         &self.format
     }
+    pub fn index(&self) -> &Vec<Index> {
+        &self.index
+    }
+    /// Searches for index by id
+    pub fn get_index(&self, id: u8) -> Option<&Index> {
+        self.index().iter().find(|idx| idx.id == id)
+    }
+    pub fn push_index(&mut self, index: Index) {
+        self.index.push(index)
+    }
     pub fn pregap(&self) -> Option<&TimeStamp> {
         self.pregap.as_ref()
     }
@@ -125,9 +135,6 @@ impl Track {
     }
     pub fn push_songwriter(&mut self, songwriter: String) {
         self.songwriter.push(songwriter)
-    }
-    pub fn push_index(&mut self, index: Index) {
-        self.index.push(index)
     }
     pub fn set_pregep(&mut self, pregap: TimeStamp) -> Option<TimeStamp> {
         self.pregap.replace(pregap)
@@ -182,6 +189,15 @@ impl TrackInfo {
             format,
             tracks,
         }
+    }
+    pub fn tracks(&self) -> &Vec<Track> {
+        &self.tracks
+    }
+    /// Searches for track by id
+    ///
+    /// `.tracks().get(...)` may be a better choice because it takes O(n) to find the track
+    pub fn get_track(&self, id: u8) -> Option<&Track> {
+        self.tracks().iter().find(|track| track.id() == id)
     }
     /// Returns the last Track or None if self.tracks is empty
     pub fn last_track(&self) -> Option<&Track> {
