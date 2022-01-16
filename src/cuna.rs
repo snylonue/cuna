@@ -9,6 +9,7 @@ use crate::trim_utf8_header;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::io::Cursor;
 use std::iter::Flatten;
 use std::ops::Index;
 use std::path::Path;
@@ -39,6 +40,13 @@ impl Cuna {
     #[inline(always)]
     pub fn new(s: &str) -> Result<Self, Error> {
         s.parse()
+    }
+    /// Parses an str as cue sheet like [`new()`](Self::new) but never fails
+    /// by skipping bad lines
+    pub fn new_suc(s: &str) -> Self {
+        let cursor = Cursor::new(s);
+        // Never panics since `Cursor::fill_buf()` always returns `Ok()`
+        Self::from_buf_read_suc(cursor).unwrap()
     }
     pub const fn with_parts(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
         Self {
