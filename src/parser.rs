@@ -85,7 +85,7 @@ impl<'a> Command<'a> {
             "pregap" => Ok(Self::Pregap(trimq(content))),
             "postgap" => Ok(Self::Postgap(trimq(content))),
             "isrc" => Ok(Self::Isrc(trimq(content))),
-            "flag" => Ok(Self::Flags(trimq(content))),
+            "flags" => Ok(Self::Flags(trimq(content))),
             _ => Err(ParseError::unexpected_token(command)),
         }
     }
