@@ -10,7 +10,8 @@ use nom::sequence::tuple;
 use std::ops;
 use std::str::FromStr;
 
-pub use self::TrackInfo as File;
+#[deprecated = "use Disc instead"]
+pub use Disc as File;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Copy)]
 pub struct Index {
@@ -31,7 +32,7 @@ pub struct Track {
     pub flags: Vec<String>,
 }
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
-pub struct TrackInfo {
+pub struct Disc {
     pub name: String,
     pub format: String,
     pub tracks: Vec<Track>,
@@ -178,7 +179,7 @@ impl ops::Index<usize> for Track {
         &self.index[index]
     }
 }
-impl TrackInfo {
+impl Disc {
     /// Constructs a new TrackInfo
     pub const fn new(name: String, format: String) -> Self {
         Self::with_tracks(name, format, Vec::new())
@@ -212,7 +213,7 @@ impl TrackInfo {
         self.tracks.push(track)
     }
 }
-impl IntoIterator for TrackInfo {
+impl IntoIterator for Disc {
     type Item = Track;
 
     type IntoIter = <Vec<Track> as IntoIterator>::IntoIter;
@@ -221,7 +222,7 @@ impl IntoIterator for TrackInfo {
         self.tracks.into_iter()
     }
 }
-impl<'a> IntoIterator for &'a TrackInfo {
+impl<'a> IntoIterator for &'a Disc {
     type Item = &'a Track;
 
     type IntoIter = std::slice::Iter<'a, Track>;
@@ -230,7 +231,7 @@ impl<'a> IntoIterator for &'a TrackInfo {
         self.tracks.iter()
     }
 }
-impl ops::Index<usize> for TrackInfo {
+impl ops::Index<usize> for Disc {
     type Output = Track;
 
     fn index(&self, index: usize) -> &Self::Output {

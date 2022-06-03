@@ -4,7 +4,7 @@ use crate::header::Header;
 use crate::parser::Command;
 use crate::parser::Parna;
 use crate::track::Track;
-use crate::track::TrackInfo;
+use crate::track::Disc;
 use crate::trim_utf8_header;
 use std::fs::File;
 use std::io::BufRead;
@@ -27,7 +27,7 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct Cuna {
     pub header: Header,
-    pub files: Vec<TrackInfo>,
+    pub files: Vec<Disc>,
     pub comments: Comment,
 }
 
@@ -48,7 +48,7 @@ impl Cuna {
         // Never panics since `Cursor::fill_buf()` always returns `Ok()`
         Self::from_buf_read_suc(cursor).unwrap()
     }
-    pub const fn with_parts(header: Header, files: Vec<TrackInfo>, comments: Comment) -> Self {
+    pub const fn with_parts(header: Header, files: Vec<Disc>, comments: Comment) -> Self {
         Self {
             header,
             files,
@@ -147,46 +147,46 @@ impl Cuna {
     pub fn catalog(&self) -> Option<u64> {
         self.header.catalog()
     }
-    pub fn files(&self) -> &Vec<TrackInfo> {
+    pub fn files(&self) -> &Vec<Disc> {
         &self.files
     }
-    pub fn set_files(&mut self, files: Vec<TrackInfo>) -> Vec<TrackInfo> {
+    pub fn set_files(&mut self, files: Vec<Disc>) -> Vec<Disc> {
         std::mem::replace(&mut self.files, files)
     }
     pub fn comments(&self) -> &Comment {
         &self.comments
     }
-    pub fn push_file(&mut self, track: TrackInfo) {
+    pub fn push_file(&mut self, track: Disc) {
         self.files.push(track);
     }
     /// Returns the first, usually the only `FILE` field in the cue sheet
-    pub fn first_file(&self) -> Option<&TrackInfo> {
+    pub fn first_file(&self) -> Option<&Disc> {
         self.files.first()
     }
     /// The mutable version of [`Cuna::first_file()`](Cuna::first_file)
-    pub fn first_file_mut(&mut self) -> Option<&mut TrackInfo> {
+    pub fn first_file_mut(&mut self) -> Option<&mut Disc> {
         self.files.first_mut()
     }
     /// Returns the last, usually the only `FILE` field in the cue sheet
-    pub fn last_file(&self) -> Option<&TrackInfo> {
+    pub fn last_file(&self) -> Option<&Disc> {
         self.files.last()
     }
     /// The mutable version of [`Cuna::last_file()`](Cuna::last_file)
-    pub fn last_file_mut(&mut self) -> Option<&mut TrackInfo> {
+    pub fn last_file_mut(&mut self) -> Option<&mut Disc> {
         self.files.last_mut()
     }
     /// Returns the last `TRACK` field which appears in the cue sheet
     pub fn last_track(&self) -> Option<&Track> {
-        self.last_file().map(TrackInfo::last_track).flatten()
+        self.last_file().map(Disc::last_track).flatten()
     }
     /// The mutable version of [`Cuna::last_track()`](Cuna::last_track)
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
         self.last_file_mut()
-            .map(TrackInfo::last_track_mut)
+            .map(Disc::last_track_mut)
             .flatten()
     }
     /// An iterator over the `TRACK`s in all the `FILE`s
-    pub fn tracks(&self) -> Flatten<Iter<TrackInfo>> {
+    pub fn tracks(&self) -> Flatten<Iter<Disc>> {
         self.files.iter().flatten()
     }
 }
@@ -206,7 +206,7 @@ impl FromStr for Cuna {
     }
 }
 impl Index<usize> for Cuna {
-    type Output = TrackInfo;
+    type Output = Disc;
 
     /// # Panics
     ///

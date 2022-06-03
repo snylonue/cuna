@@ -4,7 +4,7 @@ use crate::error::ParseError;
 use crate::time::TimeStamp;
 use crate::track::Index;
 use crate::track::Track;
-use crate::track::TrackInfo;
+use crate::track::Disc;
 use crate::utils;
 use crate::Cuna;
 use std::fmt;
@@ -113,7 +113,7 @@ impl<'a> Command<'a> {
                 sheet.header.set_cdtextfile(s.to_owned());
             }
             Self::File(name, format) => {
-                sheet.push_file(TrackInfo::new(name.to_owned(), format.to_owned()));
+                sheet.push_file(Disc::new(name.to_owned(), format.to_owned()));
             }
             Self::Track(id, format) => match sheet.last_file_mut() {
                 Some(tk) => tk.push_track(Track::new_unchecked(id, format.to_owned())),
