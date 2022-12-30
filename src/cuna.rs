@@ -190,13 +190,11 @@ impl Cuna {
     }
     /// Returns the last `TRACK` field which appears in the cue sheet
     pub fn last_track(&self) -> Option<&Track> {
-        self.last_file().map(Disc::last_track).flatten()
+        self.last_file().and_then(Disc::last_track)
     }
     /// The mutable version of [`Cuna::last_track()`](Cuna::last_track)
     pub fn last_track_mut(&mut self) -> Option<&mut Track> {
-        self.last_file_mut()
-            .map(Disc::last_track_mut)
-            .flatten()
+        self.last_file_mut().and_then(Disc::last_track_mut)
     }
     /// An iterator over the `TRACK`s in all the `FILE`s
     pub fn tracks(&self) -> Flatten<Iter<Disc>> {
