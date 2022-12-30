@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Cursor;
+use std::io::Read;
 use std::iter::Flatten;
 use std::ops::Index;
 use std::path::Path;
@@ -54,6 +55,18 @@ impl Cuna {
             files,
             comments,
         }
+    }
+    /// Reads `f` into a string and parses it.
+    pub fn read(mut f: impl Read) -> Result<Self, Error> {
+        let mut buf = String::new();
+        f.read_to_string(&mut buf)?;
+        buf.parse()
+    }
+    /// Like [`Cuna::read()`](Self::read) but skips bad lines
+    pub fn read_suc(mut f: impl Read) -> Result<Self, Error> {
+        let mut buf = String::new();
+        f.read_to_string(&mut buf)?;
+        Ok(Self::new_suc(&buf))
     }
     /// Parses a file as a cue sheet
     ///
