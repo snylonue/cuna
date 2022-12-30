@@ -71,7 +71,7 @@ impl Cuna {
     /// Parses a file as a cue sheet
     ///
     /// **Only supports UTF-8 encoding (with BOM or not)**
-    pub fn from_file(file: &mut File) -> Result<Self, Error> {
+    pub fn from_file(file: &File) -> Result<Self, Error> {
         let buffer = BufReader::new(file);
         Self::from_buf_read(buffer)
     }
@@ -91,8 +91,8 @@ impl Cuna {
     /// assert_eq!(cue[0][0].performer(), &["EGOIST".to_owned()]);
     /// ```
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
-        let mut file = File::open(path)?;
-        Self::from_file(&mut file)
+        let file = File::open(path)?;
+        Self::from_file(&file)
     }
     /// Opens a file and parses it as a cue sheet like [`open()`](Self::open()),
     /// except this method skips bad lines.
