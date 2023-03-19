@@ -2,9 +2,9 @@ use crate::error::Error;
 use crate::error::InvalidArgument;
 use crate::error::ParseError;
 use crate::time::TimeStamp;
+use crate::track::Disc;
 use crate::track::Index;
 use crate::track::Track;
-use crate::track::Disc;
 use crate::utils;
 use crate::Cuna;
 use std::fmt;
@@ -19,7 +19,7 @@ macro_rules! fail {
     };
     (syntax $cmd: expr, $msg: expr) => {
         return Err($crate::error::ParseError::syntax_error($cmd, $msg))
-    };
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
